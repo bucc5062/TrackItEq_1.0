@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/lyFileAction">
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="92dp"
+            android:layout_height="match_parent"
+            android:text="New"
+            android:id="@+id/btnNew"
+            android:layout_row="0"
+            android:layout_column="0"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="92dp"
+            android:layout_height="match_parent"
+            android:text="Open"
+            android:id="@+id/btnOpen"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="92dp"
+            android:layout_height="match_parent"
+            android:text="Save"
+            android:id="@+id/btnSave"
+            android:layout_row="0"
+            android:layout_column="2"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="92dp"
+            android:layout_height="match_parent"
+            android:text="Delete"
+            android:id="@+id/btnDelete"
+            android:layout_row="0"
+            android:layout_column="3"
+            android:layout_gravity="center_horizontal" />
+    </GridLayout>
+
+    <GridLayout
+        android:layout_width="367dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/grdEntry">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/label_time"
+            android:id="@+id/lblTime"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:layout_marginBottom="5dp" />
+
+        <Spinner
+            android:layout_width="147dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner_gaits"
+            android:layout_row="1"
+            android:layout_column="0"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/label_Gait"
+            android:id="@+id/lblGait"
+            android:layout_row="0"
+            android:layout_column="0"
+            android:layout_marginBottom="5dp" />
+
+        <EditText
+            android:layout_width="124dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtSelected"
+            android:layout_row="1"
+            android:layout_column="1"
+            android:layout_gravity="fill_horizontal|center_vertical"
+            android:singleLine="true"
+            android:numeric="integer" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="92dp"
+            android:layout_height="fill_parent"
+            android:text="Set"
+            android:id="@+id/btnSet"
+            android:layout_row="1"
+            android:layout_column="2"
+            android:layout_gravity="center_vertical"
+            android:clickable="true" />
+
+    </GridLayout>
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/scroll"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/my_root">
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">TrackItEq</string>
+    <string name="label_Gait">Select Gait</string>
+    <string name="label_time">Enter Time</string>
+    <string-array name="gaits_array">
+        <item>Walk</item>
+        <item>Trot</item>
+        <item>Canter</item>
+        <item>Gallop</item>
+    </string-array>
+    <string name="local_data_path">/sdcard/Android/data/com.newproject.jhull3341.trackiteq/data</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="saveplan">Save</string>
+    <string name="btnCancel">Cancel</string>
+    <string name="savePlanLabel">Enter name of plan</string>
+    <string name="openTitle">Select from the list of saved plans</string>
+    <string name="activityMainTitle">Track Conditioning</string>
+    <string name="activityManagePlans">Manage Plans</string>
+    <string name="btnDelTitle">Del</string>
+    <string name="dlgSaveTitle">Save Exercise Plan...</string>
+</resources>
