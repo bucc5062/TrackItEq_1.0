@@ -277,7 +277,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
 
                 LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
                 btnActions.setVisibility(View.VISIBLE);
-                setActionButtons(getString(R.string.pauseButtonPushed));
+                setActionButtons(getString(R.string.stopButtonPushed));
 
                 dialog.dismiss();
 
@@ -303,6 +303,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
             @Override
             public void onClick(View v) {
                 resetCurrentPlanValues();
+                setActionButtons(getString(R.string.yesStopButtonPushed));
                 dialog.dismiss();
             }
         });
@@ -311,6 +312,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         noButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                setActionButtons(getString(R.string.noStopButtonPushed));  // reset back to just the play if we stopped the plan
                 dialog.dismiss();
             }
         });
@@ -347,7 +349,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         TextView txtTotal = (TextView) findViewById(R.id.txtTotalTime); txtTotal.setText(" ");
         TextView lblPaceTitle = (TextView) findViewById(R.id.txtPaceTitle); lblPaceTitle.setText(R.string.lclPaceTitle);
 
-        setActionButtons(getString(R.string.stopButtonPushed));  // reset back to just the play if we stopped the plan
 
     }
     public String gaitLetter(String gait) {
@@ -411,9 +412,17 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         } else if (whatPushed == getString(R.string.stopButtonPushed)) {
             btnPausePlan.setVisibility((View.INVISIBLE));
             btnStopPlan.setVisibility((View.INVISIBLE));
-            btnStartPlan.setVisibility((View.INVISIBLE));
+            btnStartPlan.setVisibility((View.VISIBLE));
         } else if(whatPushed == getString(R.string.pauseButtonPushed)) {
             btnStartPlan.setVisibility((View.VISIBLE));
+        } else if(whatPushed == getString(R.string.noStopButtonPushed)) {
+            btnPausePlan.setVisibility((View.VISIBLE));
+            btnStopPlan.setVisibility((View.VISIBLE));
+            btnStartPlan.setVisibility((View.VISIBLE));
+        }else if(whatPushed == getString(R.string.yesStopButtonPushed)) {
+            btnPausePlan.setVisibility((View.INVISIBLE));
+            btnStopPlan.setVisibility((View.INVISIBLE));
+            btnStartPlan.setVisibility((View.INVISIBLE));
         }
     }
     public ArrayList<String> GetFiles(String DirectoryPath) {
