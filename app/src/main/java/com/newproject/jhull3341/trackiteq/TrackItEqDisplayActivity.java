@@ -2,6 +2,7 @@ package com.newproject.jhull3341.trackiteq;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -9,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -32,6 +34,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import android.media.SoundPool;
 import android.widget.Toast;
@@ -83,9 +87,11 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_track_it_eq_display);
 
         Log.i(eTAG, "onCreate Display");
+
+        setTitle(R.string.activityMainTitle);
+        setContentView(R.layout.activity_track_it_eq_display);
 
         // First we need to check availability of play services
         if (checkPlayServices()) {
@@ -94,45 +100,30 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
             buildGoogleApiClient();
         }
 
-        setTitle(R.string.activityMainTitle);
-        setContentView(R.layout.activity_track_it_eq_display);
+        setActivityMainListeners();  // set the various handers for the display
+        soundStuff();          // Load the sounds and sound processing
 
-        setActivityMainListeners();
-        txtPace = (TextView) findViewById(R.id.txtAvgPace);
-
-        // Load the sounds
-        soundStuff();
-        soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
-        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-            @Override
-            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-                loaded = true;
-            }
-        });
-        soundID = soundPool.load(this, R.raw.bronzebell2, 1);
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
     //region View Listeners
     private ImageButton.OnClickListener onClick_btnCreatePlans = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
-            Log.i(eTAG,"On CLick start build");
-
+            // this send the app over to the plan management tool activity
             Intent buildIntent = new Intent(context,TrackItEqMainActivity.class);
             startActivity(buildIntent);
-
         }
     };
 
     private ImageButton.OnClickListener onClick_btnStartPlan = new View.OnClickListener(){
         @Override
         public void onClick(View v) {
-            Log.i(eTAG, "onClick_btnStartPlan");
+
+            // this will begin the actual running of the plan.  It kicks off the timer
+            // which also kicks off the gps location listener
+
             if (currentPlan.size() != 0) {
+                setActionButtons(getString(R.string.startButtonPushed));  // reset back to just the play if we stopped the plan
                 startLocationUpdates();
                 timerHandler.postDelayed(timerRunnable, 0);
             }
@@ -142,24 +133,21 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     private ImageButton.OnClickListener onClick_btnStopPlan = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Log.i(eTAG, "onClick_btnStopPlan");
-            timerHandler.removeCallbacks(timerRunnable);
-            stopLocationUpdates();
 
-            legTime = 0;
-            planTime = 0;
-            legNumber = 0;
-            TextView txtPace = (TextView) findViewById(R.id.txtAvgPace); txtPace.setText(" ");
-            TextView txtLeg = (TextView) findViewById(R.id.txtLegTime); txtLeg.setText(" ");
-            TextView txtTotal = (TextView) findViewById(R.id.txtTotalTime); txtTotal.setText(" ");
+            // TODO: add a (fragment) or something to handle a Are you sure moment
+            // if the user wants to end the plan before it is over.  This resets everything
+            onStopPlan();
         }
     };
     private ImageButton.OnClickListener onClick_btnPausePlan = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Log.i(eTAG, "onClick_btnPausePlan");
+
+            // this simply stops the timer and gps listener till the start button is pressed again
+            // or the stop button
             timerHandler.removeCallbacks(timerRunnable);
             stopLocationUpdates();
+            setActionButtons(getString(R.string.pauseButtonPushed));  // reset back to just the play if we stopped the plan
         }
     };
 
@@ -167,68 +155,23 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         @Override
         public void onClick(View v) {
 
-            Log.i(eTAG, "On CLick start build");
-
-            // set and open the dialog view to allow user to select a plan to run
-            final Dialog dialog = new Dialog(context);
-            dialog.setContentView(R.layout.activity_track_it_eq_open_plan);
-            dialog.setTitle("Open Exercise Plan...");
-
-            Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancelOpen);
-            diaCancelButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dialog.dismiss();
-                }
-            });
-
-            // get a list of files from the local app plans
-            ListView lvPlan;
-            ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
-            lvPlan = (ListView)dialog.findViewById(R.id.lvPlans);
-            lvPlan.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, FilesInFolder));
-            lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-
-                    // get the selected plan to execute
-                    String data = (String) parent.getItemAtPosition(position);
-                    currentPlan = readFromFile(data);   // set the plan for reading/processing
-
-                    //get the total plan time for initial display and display it along with control
-                    // buttons
-                    planTime = getTotalPlanTime();
-                    setCurrentLeg();
-
-                    // this sets up the actual initial display
-                    setLegDisplay();
-
-                    String paceTitle = String.format("Leg Pace %1s (avg/curr)",PACE_SPEED_UNITS);
-                    TextView lblPaceTitle = (TextView) findViewById(R.id.txtPaceTitle);
-                    lblPaceTitle.setText(paceTitle);
-
-                    LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
-                    btnActions.setVisibility(View.VISIBLE);
-
-                    dialog.dismiss();
-
-                }
-            });
-            dialog.show();
-
+            // This will allow the user to select a plan from a list of pre-made plans
+            onOpenPlan();
         }
     };
     @Override
     public void onStart() {
         super.onStart();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Log.i(eTAG, "onStart");
+        // when the app is successfully started we need to create a googleapiclient
+        // that interfaces with teh google location services and maps api
+
         client.connect();
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
             Log.i(eTAG, "Connected");
         }
+
         Action viewAction = Action.newAction(
                 Action.TYPE_VIEW, // TODO: choose an action type.
                 "TrackItEqDisplay Page", // TODO: Define a title for the content shown.
@@ -246,9 +189,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     public void onStop() {
         super.onStop();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Log.i(eTAG, "onStop");
         Action viewAction = Action.newAction(
                 Action.TYPE_VIEW, // TODO: choose an action type.
                 "TrackItEqDisplay Page", // TODO: Define a title for the content shown.
@@ -264,6 +204,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     }
     //endregion
     //region GoogleAPI  Listeners
+    // the next set of listeners are for the location/google apiclient services.  They are not
+    // going to be used much in this app
     @Override
     protected void onPause() {
         super.onPause();
@@ -271,10 +213,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     }
     @Override
     public void onConnected(Bundle bundle) {
-        if (mRequestingLocationUpdates) {
-            // startLocationUpdates();
-            Log.i(eTAG,"onConnected");
-        }
+
     }
 
     @Override
@@ -284,20 +223,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.i(eTAG, "onLocationChanged");
-        int speed = gpsLocator.LocationChanged(location,PACE_SPEED_UNITS);
 
-        // calculate the avg speed of the leg for display, but only when speed is > 0
-        if (speed > 0) {
-            totalSpeed += speed;    // keep dumping into the total speed bucket to calc avg
-            avgSpeed = totalSpeed / stepCount;
-            stepCount++;
-        }
-
-        String sSpeed = String.format("%1$03d/%2$03d",avgSpeed,speed);
-        Log.i(eTAG, "rtn speed: " + sSpeed);
-        txtPace.setText(sSpeed);
-
+        // this will process the speed portion of the app.
+        onLocationChange(location);
     }
 
     @Override
@@ -306,7 +234,122 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     }
     //endregion
     //region Private Functions
+    private void onOpenPlan() {
 
+        // set and open the dialog view to allow user to select a plan to run
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.activity_track_it_eq_open_plan);
+        dialog.setTitle("Open Exercise Plan...");
+
+        Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancelOpen);
+        diaCancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        // get a list of files from the local app plans
+        ListView lvPlan;
+        ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
+        lvPlan = (ListView)dialog.findViewById(R.id.lvPlans);
+        lvPlan.setAdapter(new customArrayAdapter<>(context, android.R.layout.simple_list_item_1, FilesInFolder));
+        lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+
+                resetCurrentPlanValues();
+
+                // get the selected plan to execute
+                String data = (String) parent.getItemAtPosition(position);
+                currentPlan = readFromFile(data);   // set the plan for reading/processing
+
+                //get the total plan time for initial display and display it along with control
+                // buttons
+                planTime = getTotalPlanTime();
+                setCurrentLeg();
+
+                // this sets up the actual initial display
+                setLegDisplay();
+
+                String paceTitle = String.format("Leg Pace %1s (avg/curr)", PACE_SPEED_UNITS);
+                TextView lblPaceTitle = (TextView) findViewById(R.id.txtPaceTitle);
+                lblPaceTitle.setText(paceTitle);
+
+                LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
+                btnActions.setVisibility(View.VISIBLE);
+                setActionButtons(getString(R.string.pauseButtonPushed));
+
+                dialog.dismiss();
+
+            }
+        });
+        dialog.show();
+    }
+    private void onStopPlan() {
+
+        // set and open the dialog view to allow user to select a plan to run
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.activity_track_it_eq_confirm);
+        dialog.setTitle("Closing Current Plan...");
+
+        // pause the clock and gps, just in case
+
+        timerHandler.removeCallbacks(timerRunnable);
+        stopLocationUpdates();
+
+        // set up the yes button, that if clicked will end the running of the current plan.
+        Button yesButton = (Button) dialog.findViewById((R.id.btnYes));
+        yesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resetCurrentPlanValues();
+                dialog.dismiss();
+            }
+        });
+        // the no way button will just clear out the
+        Button noButton = (Button) dialog.findViewById((R.id.btnNoWay));
+        noButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+
+    }
+    private void onLocationChange(Location location) {
+        Log.i(eTAG, "onLocationChanged");
+        int speed = gpsLocator.LocationChanged(location,PACE_SPEED_UNITS);
+        String sSpeed = "";
+
+        // calculate the avg speed of the leg for display, but only when speed is > 0
+        if (speed > 0) {
+            totalSpeed += speed;    // keep dumping into the total speed bucket to calc avg
+            avgSpeed = totalSpeed / stepCount;
+            stepCount++;
+            sSpeed = String.format("%1$03d/%2$03d",avgSpeed,speed);
+        } else {
+            sSpeed = getString(R.string.noData);
+        }
+
+        Log.i(eTAG, "rtn speed: " + sSpeed);
+        txtPace.setText(sSpeed);
+    }
+    private void resetCurrentPlanValues() {
+
+        preTime = 5;            // this gives the warning bells before the start.
+        legTime = 0;
+        planTime = 0;
+        legNumber = 0;
+        TextView txtPace = (TextView) findViewById(R.id.txtAvgPace); txtPace.setText(" ");
+        TextView txtLeg = (TextView) findViewById(R.id.txtLegTime); txtLeg.setText(" ");
+        TextView txtTotal = (TextView) findViewById(R.id.txtTotalTime); txtTotal.setText(" ");
+        TextView lblPaceTitle = (TextView) findViewById(R.id.txtPaceTitle); lblPaceTitle.setText(R.string.lclPaceTitle);
+
+        setActionButtons(getString(R.string.stopButtonPushed));  // reset back to just the play if we stopped the plan
+
+    }
     public String gaitLetter(String gait) {
         return gait.substring(0,1).toUpperCase();
     }
@@ -354,6 +397,24 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         setLegColor();
         legNumber ++;   // increase for the next change
 
+    }
+    private void setActionButtons(String whatPushed) {
+
+        ImageButton btnStartPlan = (ImageButton) findViewById(R.id.btnStartPlan);
+        ImageButton btnPausePlan = (ImageButton) findViewById(R.id.btnPausePlan);
+        ImageButton btnStopPlan = (ImageButton) findViewById(R.id.btnStopPlan);
+
+        if (whatPushed == getString(R.string.startButtonPushed)) {
+            btnStartPlan.setVisibility((View.INVISIBLE));
+            btnPausePlan.setVisibility((View.VISIBLE));
+            btnStopPlan.setVisibility((View.VISIBLE));
+        } else if (whatPushed == getString(R.string.stopButtonPushed)) {
+            btnPausePlan.setVisibility((View.INVISIBLE));
+            btnStopPlan.setVisibility((View.INVISIBLE));
+            btnStartPlan.setVisibility((View.INVISIBLE));
+        } else if(whatPushed == getString(R.string.pauseButtonPushed)) {
+            btnStartPlan.setVisibility((View.VISIBLE));
+        }
     }
     public ArrayList<String> GetFiles(String DirectoryPath) {
 
@@ -435,6 +496,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     }
     private void setActivityMainListeners(){
 
+        txtPace = (TextView) findViewById(R.id.txtAvgPace);
+
         TextView txt1 = (TextView) findViewById((R.id.txtAvgPace));
         txt1.setText(" ");
         TextView txt2 = (TextView) findViewById((R.id.txtLegTime));
@@ -457,6 +520,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
 
         LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
         btnActions.setVisibility(View.INVISIBLE);
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
     }
     private void processTime() {
@@ -488,6 +555,16 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         actVolume = (float) audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         maxVolume = (float) audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         volume = actVolume / maxVolume;
+
+        soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                loaded = true;
+            }
+        });
+        soundID = soundPool.load(this, R.raw.bronzebell2, 1);
+
     }
     protected void createLocationRequest() {
         Log.i(eTAG,"createLocationRequest");
@@ -534,4 +611,24 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         return true;
     }
     //endregion
+    private class customArrayAdapter<String> extends ArrayAdapter<String> {
+
+        public customArrayAdapter(Context context, int resource, ArrayList<String> objects) {
+            super(context, resource, objects);
+        }
+        public customArrayAdapter(Context context, int resource, String[] objects) {
+            super(context, resource, objects);
+        }
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view = super.getView(position, convertView, parent);
+            if (position % 2 == 1) {
+                view.setBackgroundColor(Color.LTGRAY);
+            } else {
+                view.setBackgroundColor(Color.WHITE);
+            }
+
+            return view;
+        }
+    }
 }

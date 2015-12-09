@@ -20,4 +20,13 @@
     <string name="activityManagePlans">Manage Plans</string>
     <string name="btnDelTitle">Del</string>
     <string name="dlgSaveTitle">Save Exercise Plan...</string>
+    <string name="ConfirmTitle">Comfirmation of Action</string>
+    <string name="AreYouSure">Are you sure you wish to continue?</string>
+    <string name="btnYesTitle">Yes</string>
+    <string name="btnNoTitle">No</string>
+    <string name="startButtonPushed">startButtonPushed</string>
+    <string name="pauseButtonPushed">pauseButtonPushed</string>
+    <string name="stopButtonPushed">stopButtonPushed</string>
+    <string name="noData">No Data</string>
+    <string name="lclPaceTitle">Leg Pace (avg/curr)</string>
 </resources>
