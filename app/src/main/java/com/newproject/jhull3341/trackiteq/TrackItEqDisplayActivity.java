@@ -1,11 +1,16 @@
 package com.newproject.jhull3341.trackiteq;
+
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.os.Handler;
+
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
@@ -40,7 +46,7 @@ import java.util.List;
 import android.media.SoundPool;
 import android.widget.Toast;
 
-public class TrackItEqDisplayActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks ,LocationListener {
+public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPActivity {
 
     private GoogleApiClient client;
     GoogleApiClient mGoogleApiClient;
@@ -62,11 +68,13 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     private AudioManager audioManager;
     private Boolean loaded = false;
     private Boolean mRequestingLocationUpdates = false;
-    private com.google.android.gms.location.LocationRequest mLocationRequest;
+    private LocationRequest mLocationRequest;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     private final static int LOCATION_REQUEST_INTERVAL = 5000;
     private final static int LOCATION_REQUEST_FASTEST_INTERVAL = 1000;
     private final static String PACE_SPEED_UNITS = "kph";
+
+    private gpsLocationListener gps;
 
     private TextView txtPace;
 
@@ -77,12 +85,17 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         @Override
         public void run() {
 
-        // do something here to display
+            // do something here to display
 
             processTime();    // process what to be done on a sec by sec basis
             timerHandler.postDelayed(this, 1000);
         }
     };
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,25 +110,35 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         if (checkPlayServices()) {
             Log.i(eTAG, "passed check services");
             // Building the GoogleApi client
-            buildGoogleApiClient();
+           // buildGoogleApiClient();
         }
+        gps = new gpsLocationListener(this, this);
 
         setActivityMainListeners();  // set the various handers for the display
         soundStuff();          // Load the sounds and sound processing
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client2 = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
+
+    @Override
+    public void locationChanged(int currSpeed) {
+        Log.i(eTAG,"HAHAHAHA" + currSpeed);
+    }
+
     //region View Listeners
     private ImageButton.OnClickListener onClick_btnCreatePlans = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
             // this send the app over to the plan management tool activity
-            Intent buildIntent = new Intent(context,TrackItEqMainActivity.class);
+            Intent buildIntent = new Intent(context, TrackItEqMainActivity.class);
             startActivity(buildIntent);
         }
     };
 
-    private ImageButton.OnClickListener onClick_btnStartPlan = new View.OnClickListener(){
+    private ImageButton.OnClickListener onClick_btnStartPlan = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
@@ -151,7 +174,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         }
     };
 
-    private ImageButton.OnClickListener onClick_btnOpenPlan = new View.OnClickListener(){
+    private ImageButton.OnClickListener onClick_btnOpenPlan = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
@@ -159,9 +182,13 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
             onOpenPlan();
         }
     };
+
     @Override
     public void onStart() {
         super.onStart();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client2.connect();
 
         // when the app is successfully started we need to create a googleapiclient
         // that interfaces with teh google location services and maps api
@@ -183,6 +210,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
                 Uri.parse("android-app://com.newproject.jhull3341.trackiteq/http/host/path")
         );
         AppIndex.AppIndexApi.start(client, viewAction);
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction2 = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "TrackItEqDisplay Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.newproject.jhull3341.trackiteq/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client2, viewAction2);
     }
 
     @Override
@@ -204,35 +244,36 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
     }
     //endregion
     //region GoogleAPI  Listeners
-    // the next set of listeners are for the location/google apiclient services.  They are not
-    // going to be used much in this app
-    @Override
-    protected void onPause() {
-        super.onPause();
-        stopLocationUpdates();
-    }
-    @Override
-    public void onConnected(Bundle bundle) {
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-        // this will process the speed portion of the app.
-        onLocationChange(location);
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.i(eTAG, "onConnectionFailed");
-    }
+//    // the next set of listeners are for the location/google apiclient services.  They are not
+//    // going to be used much in this app
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        stopLocationUpdates();
+//    }
+//    @Override
+//    public void onConnected(Bundle bundle) {
+//
+//    }
+//
+//    @Override
+//    public void onConnectionSuspended(int i) {
+//
+//    }
+//
+//    @Override
+//    public void onLocationChanged(Location location) {
+//
+//        // this will process the speed portion of the app.
+//        onLocationChange(location);
+//    }
+//
+//    @Override
+//    public void onConnectionFailed(ConnectionResult connectionResult) {
+//        Log.i(eTAG, "onConnectionFailed");
+//    }
     //endregion
+
     //region Private Functions
     private void onOpenPlan() {
 
@@ -252,7 +293,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         // get a list of files from the local app plans
         ListView lvPlan;
         ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
-        lvPlan = (ListView)dialog.findViewById(R.id.lvPlans);
+        lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
         lvPlan.setAdapter(new customArrayAdapter<>(context, android.R.layout.simple_list_item_1, FilesInFolder));
         lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
@@ -285,6 +326,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         });
         dialog.show();
     }
+
     private void onStopPlan() {
 
         // set and open the dialog view to allow user to select a plan to run
@@ -320,17 +362,18 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         dialog.show();
 
     }
-    private void onLocationChange(Location location) {
-        Log.i(eTAG, "onLocationChanged");
-        int speed = gpsLocator.LocationChanged(location,PACE_SPEED_UNITS);
+
+    private void onLocationChanged(int currSpeed) {
+        Log.i(eTAG, "onLocationChanged function status: " +gps.Status + " " + gps.Provider);
+
         String sSpeed = "";
 
         // calculate the avg speed of the leg for display, but only when speed is > 0
-        if (speed > 0) {
-            totalSpeed += speed;    // keep dumping into the total speed bucket to calc avg
+        if (currSpeed > 0) {
+            totalSpeed += currSpeed;    // keep dumping into the total speed bucket to calc avg
             avgSpeed = totalSpeed / stepCount;
             stepCount++;
-            sSpeed = String.format("%1$03d/%2$03d",avgSpeed,speed);
+            sSpeed = String.format("%1$03d/%2$03d", avgSpeed, currSpeed);
         } else {
             sSpeed = getString(R.string.noData);
         }
@@ -338,28 +381,35 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         Log.i(eTAG, "rtn speed: " + sSpeed);
         txtPace.setText(sSpeed);
     }
+
     private void resetCurrentPlanValues() {
 
         preTime = 5;            // this gives the warning bells before the start.
         legTime = 0;
         planTime = 0;
         legNumber = 0;
-        TextView txtPace = (TextView) findViewById(R.id.txtAvgPace); txtPace.setText(" ");
-        TextView txtLeg = (TextView) findViewById(R.id.txtLegTime); txtLeg.setText(" ");
-        TextView txtTotal = (TextView) findViewById(R.id.txtTotalTime); txtTotal.setText(" ");
-        TextView lblPaceTitle = (TextView) findViewById(R.id.txtPaceTitle); lblPaceTitle.setText(R.string.lclPaceTitle);
+        TextView txtPace = (TextView) findViewById(R.id.txtAvgPace);
+        txtPace.setText(" ");
+        TextView txtLeg = (TextView) findViewById(R.id.txtLegTime);
+        txtLeg.setText(" ");
+        TextView txtTotal = (TextView) findViewById(R.id.txtTotalTime);
+        txtTotal.setText(" ");
+        TextView lblPaceTitle = (TextView) findViewById(R.id.txtPaceTitle);
+        lblPaceTitle.setText(R.string.lclPaceTitle);
 
 
     }
+
     public String gaitLetter(String gait) {
-        return gait.substring(0,1).toUpperCase();
+        return gait.substring(0, 1).toUpperCase();
     }
+
     private void setLegDisplay() {
 
         TextView legText = (TextView) findViewById(R.id.txtLegTime);
         TextView totText = (TextView) findViewById(R.id.txtTotalTime);
         totText.setText(displayTime(planTime));
-        legText.setText(String.format("%1s %2s",gaitLetter(legGait), displayTime(legTime)));
+        legText.setText(String.format("%1s %2s", gaitLetter(legGait), displayTime(legTime)));
 
         // reset the pace variables for the next leg to display
         totalSpeed = 0;
@@ -367,6 +417,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         stepCount = 1;
 
     }
+
     private void setLegColor() {
 
         // set the color of the text box based on the current gait.  It is a set once for
@@ -388,6 +439,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
                 break;
         }
     }
+
     private void setCurrentLeg() {
 
         //get the total plan time for initial display and display it along with control
@@ -396,9 +448,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         legTime = Integer.parseInt(legData[1]) * 60;    //convert to seconds
         legGait = legData[0];
         setLegColor();
-        legNumber ++;   // increase for the next change
+        legNumber++;   // increase for the next change
 
     }
+
     private void setActionButtons(String whatPushed) {
 
         ImageButton btnStartPlan = (ImageButton) findViewById(R.id.btnStartPlan);
@@ -413,18 +466,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
             btnPausePlan.setVisibility((View.INVISIBLE));
             btnStopPlan.setVisibility((View.INVISIBLE));
             btnStartPlan.setVisibility((View.VISIBLE));
-        } else if(whatPushed == getString(R.string.pauseButtonPushed)) {
+        } else if (whatPushed == getString(R.string.pauseButtonPushed)) {
             btnStartPlan.setVisibility((View.VISIBLE));
-        } else if(whatPushed == getString(R.string.noStopButtonPushed)) {
+        } else if (whatPushed == getString(R.string.noStopButtonPushed)) {
             btnPausePlan.setVisibility((View.VISIBLE));
             btnStopPlan.setVisibility((View.VISIBLE));
             btnStartPlan.setVisibility((View.VISIBLE));
-        }else if(whatPushed == getString(R.string.yesStopButtonPushed)) {
+        } else if (whatPushed == getString(R.string.yesStopButtonPushed)) {
             btnPausePlan.setVisibility((View.INVISIBLE));
             btnStopPlan.setVisibility((View.INVISIBLE));
             btnStartPlan.setVisibility((View.INVISIBLE));
         }
     }
+
     public ArrayList<String> GetFiles(String DirectoryPath) {
 
         // this function will generate a list of files based on the passed path
@@ -440,11 +494,12 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
 
         return MyFiles;
     }
+
     private ArrayList<String> readFromFile(String fName) {
-        Log.i(eTAG,"readFromFile");
+        Log.i(eTAG, "readFromFile");
         String ret = "";
 
-        File file = new File(getString(R.string.local_data_path),fName);
+        File file = new File(getString(R.string.local_data_path), fName);
         ArrayList<String> rows = new ArrayList<>();
 
         try {
@@ -454,12 +509,11 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
             String row;
             while ((row = br.readLine()) != null) {
                 rows.add(row);
-                Log.i(eTAG,row);
+                Log.i(eTAG, row);
             }
             iFile.close();
 
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             Log.e("login activity", "File not found: " + e.toString());
         } catch (IOException e) {
             Log.e("login activity", "Can not read file: " + e.toString());
@@ -467,17 +521,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
 
         return rows;
     }
+
     private long getTotalPlanTime() {
         // read through the arraylist pulled from the plan and calculate the total time of the plan
 
         long TotalSecs = 0;
-        for (String element:currentPlan) {
+        for (String element : currentPlan) {
             String[] elements = element.split(",");
             TotalSecs += (Integer.parseInt(elements[1])) * 60;  // convert to seconds
         }
 
         return TotalSecs;
     }
+
     private String displayTime(long inTime) {
 
         String rtn;
@@ -485,14 +541,15 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         int[] rtnVals = splitToComponentTimes(inTime);
 
         if (rtnVals[0] == 0) {
-            rtn = String.format("%1$02d:%2$02d",rtnVals[1],rtnVals[2]);
+            rtn = String.format("%1$02d:%2$02d", rtnVals[1], rtnVals[2]);
         } else {
-            rtn = String.format("%1$d:%2$02d:%3$02d",rtnVals[0],rtnVals[1],rtnVals[2]);
+            rtn = String.format("%1$d:%2$02d:%3$02d", rtnVals[0], rtnVals[1], rtnVals[2]);
         }
 
         return rtn;
     }
-    private int[] splitToComponentTimes(long longVal){
+
+    private int[] splitToComponentTimes(long longVal) {
 
         int hours = (int) longVal / 3600;
         int remainder = (int) longVal - hours * 3600;
@@ -500,10 +557,11 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         remainder = remainder - mins * 60;
         int secs = remainder;
 
-        int[] ints = {hours , mins , secs};
+        int[] ints = {hours, mins, secs};
         return ints;
     }
-    private void setActivityMainListeners(){
+
+    private void setActivityMainListeners() {
 
         txtPace = (TextView) findViewById(R.id.txtAvgPace);
 
@@ -535,6 +593,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
     }
+
     private void processTime() {
 
         if (preTime > 0) {
@@ -555,9 +614,12 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
             }
             // set the total time and leg display
             setLegDisplay();
+            onLocationChanged(gps.currSpeed);
+            gps.currSpeed = 0;
         }
     }
-    private void soundStuff(){
+
+    private void soundStuff() {
 
         // AudioManager audio settings for adjusting the volume
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
@@ -575,9 +637,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         soundID = soundPool.load(this, R.raw.bronzebell2, 1);
 
     }
+
     protected void createLocationRequest() {
-        Log.i(eTAG,"createLocationRequest");
-        mLocationRequest = new com.google.android.gms.location.LocationRequest();
+        Log.i(eTAG, "createLocationRequest");
+        mLocationRequest = new LocationRequest();
 
         mLocationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
         mLocationRequest.setFastestInterval(LOCATION_REQUEST_FASTEST_INTERVAL);
@@ -586,20 +649,24 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         mRequestingLocationUpdates = true;
 
     }
+
     protected void startLocationUpdates() {
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        Log.i(eTAG, "startLocationUpdates");
+        gps.resumeGPS();
     }
+
     protected void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(
-                mGoogleApiClient, this);
+        gps.stopGPS();
     }
+
     protected synchronized void buildGoogleApiClient() {
-        Log.i(eTAG,"buildGoogleApiClient");
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API).build();
+        Log.i(eTAG, "buildGoogleApiClient");
+//        mGoogleApiClient = new GoogleApiClient.Builder(this)
+//                .addConnectionCallbacks(this)
+//                .addOnConnectionFailedListener(this)
+//                .addApi(LocationServices.API).build();
     }
+
     private boolean checkPlayServices() {
         Log.i(eTAG, "in checkPlayServices");
         int resultCode = GooglePlayServicesUtil
@@ -619,15 +686,18 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements Googl
         }
         return true;
     }
+
     //endregion
     private class customArrayAdapter<String> extends ArrayAdapter<String> {
 
         public customArrayAdapter(Context context, int resource, ArrayList<String> objects) {
             super(context, resource, objects);
         }
+
         public customArrayAdapter(Context context, int resource, String[] objects) {
             super(context, resource, objects);
         }
+
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             View view = super.getView(position, convertView, parent);
