@@ -1,18 +1,16 @@
 package com.newproject.jhull3341.trackiteq;
 
-import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationManager;
 import android.media.AudioManager;
+import android.media.SoundPool;
 import android.net.Uri;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,16 +21,16 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.os.Handler;
+import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,13 +38,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
-import android.media.SoundPool;
-import android.widget.Toast;
-
-public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPActivity {
+public class TrackItEqDisplayActivity extends AppCompatActivity
+        implements LocationListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleApiClient client;
     GoogleApiClient mGoogleApiClient;
@@ -58,11 +54,12 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
     private long preTime = 5;
     private String legGait = ""; // current gait to perform
     private int legNumber = 0;
-    private int totalSpeed = 0;         // holds the total speed per leg, changes when leg changes
-    private int avgSpeed = 0;           // holds the avg speed per leg, changes when leg changes
-    private int stepCount = 1;          // use to calculate the avg speed
+  //  private int totalSpeed = 0;         // holds the total speed per leg, changes when leg changes
+   // private int avgSpeed = 0;           // holds the avg speed per leg, changes when leg changes
+   // private int stepCount = 1;          // use to calculate the avg speed
+    Location locPrev;
     final Context context = this;
-    private SoundPool soundPool;
+    private SoundPool soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
     private int soundID;
     float actVolume, maxVolume, volume;
     private AudioManager audioManager;
@@ -70,11 +67,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
     private Boolean mRequestingLocationUpdates = false;
     private LocationRequest mLocationRequest;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
-    private final static int LOCATION_REQUEST_INTERVAL = 5000;
-    private final static int LOCATION_REQUEST_FASTEST_INTERVAL = 1000;
+    private final static int LOCATION_REQUEST_INTERVAL = 1000;
+    private final static int LOCATION_REQUEST_FASTEST_INTERVAL = 500;
     private final static String PACE_SPEED_UNITS = "kph";
-
-    private gpsLocationListener gps;
 
     private TextView txtPace;
 
@@ -112,7 +107,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
             // Building the GoogleApi client
            // buildGoogleApiClient();
         }
-        gps = new gpsLocationListener(this, this);
+        setUpGoogleApiClientIfNeeded();
+        createLocationRequest();
 
         setActivityMainListeners();  // set the various handers for the display
         soundStuff();          // Load the sounds and sound processing
@@ -123,10 +119,25 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
     }
 
     @Override
-    public void locationChanged(int currSpeed) {
-        Log.i(eTAG,"HAHAHAHA" + currSpeed);
+    public void onConnected(Bundle bundle) {
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.i(eTAG,"onLocationChanged provider: " + location.getProvider() + " ");
+        LocationChanged(convertSpeed(location,"mpm"));
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
     //region View Listeners
     private ImageButton.OnClickListener onClick_btnCreatePlans = new View.OnClickListener() {
         @Override
@@ -243,37 +254,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
         client.disconnect();
     }
     //endregion
-    //region GoogleAPI  Listeners
-//    // the next set of listeners are for the location/google apiclient services.  They are not
-//    // going to be used much in this app
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        stopLocationUpdates();
-//    }
-//    @Override
-//    public void onConnected(Bundle bundle) {
-//
-//    }
-//
-//    @Override
-//    public void onConnectionSuspended(int i) {
-//
-//    }
-//
-//    @Override
-//    public void onLocationChanged(Location location) {
-//
-//        // this will process the speed portion of the app.
-//        onLocationChange(location);
-//    }
-//
-//    @Override
-//    public void onConnectionFailed(ConnectionResult connectionResult) {
-//        Log.i(eTAG, "onConnectionFailed");
-//    }
-    //endregion
-
     //region Private Functions
     private void onOpenPlan() {
 
@@ -363,17 +343,14 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
 
     }
 
-    private void onLocationChanged(int currSpeed) {
-        Log.i(eTAG, "onLocationChanged function status: " +gps.Status + " " + gps.Provider);
+    private void LocationChanged(int currSpeed) {
+        Log.i(eTAG, "LocationChanged function");
 
-        String sSpeed = "";
+        String sSpeed;
 
         // calculate the avg speed of the leg for display, but only when speed is > 0
         if (currSpeed > 0) {
-            totalSpeed += currSpeed;    // keep dumping into the total speed bucket to calc avg
-            avgSpeed = totalSpeed / stepCount;
-            stepCount++;
-            sSpeed = String.format("%1$03d/%2$03d", avgSpeed, currSpeed);
+            sSpeed = String.format("%1$04d",currSpeed);
         } else {
             sSpeed = getString(R.string.noData);
         }
@@ -381,7 +358,56 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
         Log.i(eTAG, "rtn speed: " + sSpeed);
         txtPace.setText(sSpeed);
     }
+    private int convertSpeed(Location locCurr,String units) {
 
+        // speed can come from either the speed set by fuse location listener or as I am
+        // starting to see, when GPS is out, it comes from the LatLon calculations.
+        double speed;
+        Double d1;
+        Long t1;
+
+        if (locCurr.hasSpeed()) {
+            speed = locCurr.getSpeed() * 1.0; // need to * 1.0 to get into a double for some reason...
+        } else {
+            speed = 0;
+            try {
+                // get the distance and time between the current position, and the previous position.
+                // using (counter - 1) % data_points doesn't wrap properly
+                d1 = distance(locCurr.getLatitude(), locCurr.getLongitude(), locPrev.getLatitude(), locPrev.getLongitude());
+                t1 = locCurr.getTime() - locPrev.getTime();
+                Log.i(eTAG,"d1:" + d1);
+                Log.i(eTAG,"t1:" + t1);
+                speed = d1 / t1; // m/s
+                Log.i(eTAG,"speed: " + speed);
+            } catch (NullPointerException e) {
+                //all good, just not enough data yet.
+            }
+
+        }
+        int lclSpeed;
+        // convert from m/s to specified units
+        switch (units) {
+            case "kph":
+                lclSpeed = (int)(speed * 3.6d);
+                break;
+            case "mph":
+                lclSpeed = (int)(speed * 2.23693629d);
+                break;
+            case "knots":
+                lclSpeed = (int)(speed * 1.94384449d);
+                break;
+            case "mpm":
+                lclSpeed = (int)(speed * 60);  // 60 meters per minute = 1 meter per sec
+                break;
+            default:
+                lclSpeed = (int)speed;
+        }
+
+        locPrev = locCurr;
+
+        return lclSpeed;
+
+    }
     private void resetCurrentPlanValues() {
 
         preTime = 5;            // this gives the warning bells before the start.
@@ -410,11 +436,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
         TextView totText = (TextView) findViewById(R.id.txtTotalTime);
         totText.setText(displayTime(planTime));
         legText.setText(String.format("%1s %2s", gaitLetter(legGait), displayTime(legTime)));
-
-        // reset the pace variables for the next leg to display
-        totalSpeed = 0;
-        avgSpeed = 0;
-        stepCount = 1;
 
     }
 
@@ -458,21 +479,21 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
         ImageButton btnPausePlan = (ImageButton) findViewById(R.id.btnPausePlan);
         ImageButton btnStopPlan = (ImageButton) findViewById(R.id.btnStopPlan);
 
-        if (whatPushed == getString(R.string.startButtonPushed)) {
+        if (whatPushed.equals(getString(R.string.startButtonPushed))) {
             btnStartPlan.setVisibility((View.INVISIBLE));
             btnPausePlan.setVisibility((View.VISIBLE));
             btnStopPlan.setVisibility((View.VISIBLE));
-        } else if (whatPushed == getString(R.string.stopButtonPushed)) {
+        } else if (whatPushed.equals(getString(R.string.stopButtonPushed))) {
             btnPausePlan.setVisibility((View.INVISIBLE));
             btnStopPlan.setVisibility((View.INVISIBLE));
             btnStartPlan.setVisibility((View.VISIBLE));
-        } else if (whatPushed == getString(R.string.pauseButtonPushed)) {
+        } else if (whatPushed.equals(getString(R.string.pauseButtonPushed))) {
             btnStartPlan.setVisibility((View.VISIBLE));
-        } else if (whatPushed == getString(R.string.noStopButtonPushed)) {
+        } else if (whatPushed.equals(getString(R.string.noStopButtonPushed))) {
             btnPausePlan.setVisibility((View.VISIBLE));
             btnStopPlan.setVisibility((View.VISIBLE));
             btnStartPlan.setVisibility((View.VISIBLE));
-        } else if (whatPushed == getString(R.string.yesStopButtonPushed)) {
+        } else if (whatPushed.equals(getString(R.string.yesStopButtonPushed))) {
             btnPausePlan.setVisibility((View.INVISIBLE));
             btnStopPlan.setVisibility((View.INVISIBLE));
             btnStartPlan.setVisibility((View.INVISIBLE));
@@ -497,7 +518,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
 
     private ArrayList<String> readFromFile(String fName) {
         Log.i(eTAG, "readFromFile");
-        String ret = "";
 
         File file = new File(getString(R.string.local_data_path), fName);
         ArrayList<String> rows = new ArrayList<>();
@@ -557,10 +577,26 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
         remainder = remainder - mins * 60;
         int secs = remainder;
 
-        int[] ints = {hours, mins, secs};
-        return ints;
+        return new int[]{hours, mins, secs};
+    }
+    private static double distance(double lat1, double lon1, double lat2, double lon2) {
+        // have a sine great circle distance approximation, returns meters
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60; // 60 nautical miles per degree of separation
+        dist = dist * 1852; // 1852 meters per nautical mile
+        return (dist);
     }
 
+    private static double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    private static double rad2deg(double rad) {
+        return (rad * 180.0 / Math.PI);
+    }
     private void setActivityMainListeners() {
 
         txtPace = (TextView) findViewById(R.id.txtAvgPace);
@@ -614,8 +650,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
             }
             // set the total time and leg display
             setLegDisplay();
-            onLocationChanged(gps.currSpeed);
-            gps.currSpeed = 0;
+            //LocationChanged(gps.currSpeed);
+           // gps.currSpeed = 0;
         }
     }
 
@@ -627,7 +663,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
         maxVolume = (float) audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         volume = actVolume / maxVolume;
 
-        soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
         soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
             @Override
             public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
@@ -638,7 +673,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
 
     }
 
+    private void setUpGoogleApiClientIfNeeded() {
+
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+            mGoogleApiClient.connect();
+        }
+    }
     protected void createLocationRequest() {
+
         Log.i(eTAG, "createLocationRequest");
         mLocationRequest = new LocationRequest();
 
@@ -652,19 +699,12 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
 
     protected void startLocationUpdates() {
         Log.i(eTAG, "startLocationUpdates");
-        gps.resumeGPS();
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
     protected void stopLocationUpdates() {
-        gps.stopGPS();
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        Log.i(eTAG, "buildGoogleApiClient");
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .addApi(LocationServices.API).build();
+        Log.i(eTAG, "stopLocationUpdates");
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
     }
 
     private boolean checkPlayServices() {
@@ -688,7 +728,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity implements iGSPA
     }
 
     //endregion
-    private class customArrayAdapter<String> extends ArrayAdapter<String> {
+    protected class customArrayAdapter<String> extends ArrayAdapter<String> {
 
         public customArrayAdapter(Context context, int resource, ArrayList<String> objects) {
             super(context, resource, objects);

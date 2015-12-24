@@ -8,6 +8,7 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
@@ -33,6 +34,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import static android.view.View.*;
 
 public class TrackItEqMainActivity extends AppCompatActivity {
 
@@ -116,7 +119,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         }
     };
 
-    private Button.OnClickListener onClick_btnNew = new View.OnClickListener() {
+    private Button.OnClickListener onClick_btnNew = new OnClickListener() {
         @Override
         public void onClick(View v) {
 
@@ -125,7 +128,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             all grids are removed and the START is set for display.
             */
             GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);
-            grdEntry.setVisibility(View.VISIBLE);
+            grdEntry.setVisibility(VISIBLE);
             Log.i(eTAG, "onClick_btnNew");
             clearGrid();
             TextView txtTime = (TextView) findViewById(R.id.txtSelected);
@@ -133,7 +136,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
         }
     };
-    private Button.OnClickListener onClick_btnOpen = new View.OnClickListener() {
+    private Button.OnClickListener onClick_btnOpen = new OnClickListener() {
         @Override
         public void onClick(View v) {
 
@@ -142,7 +145,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             dialog.setTitle("Open Exercise Plan...");
 
             Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancelOpen);
-            diaCancelButton.setOnClickListener(new View.OnClickListener() {
+            diaCancelButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     dialog.dismiss();
@@ -169,7 +172,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                     }
 
                     GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);
-                    grdEntry.setVisibility(View.VISIBLE);
+                    grdEntry.setVisibility(VISIBLE);
                     dialog.dismiss();
 
                 }
@@ -177,7 +180,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             dialog.show();
         }
     };
-    private Button.OnClickListener onClick_btnSave = new View.OnClickListener() {
+    private Button.OnClickListener onClick_btnSave = new OnClickListener() {
         @Override
         public void onClick(View v) {
             Log.i(eTAG, "onClick_btnSave");
@@ -187,7 +190,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             dialog.setTitle(R.string.dlgSaveTitle);
 
             Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancel);
-            diaCancelButton.setOnClickListener(new View.OnClickListener() {
+            diaCancelButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     dialog.dismiss();
@@ -195,7 +198,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             });
 
             Button diaSaveButton  = (Button) dialog.findViewById(R.id.btnSaveDia);
-            diaSaveButton.setOnClickListener(new View.OnClickListener() {
+            diaSaveButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
@@ -233,27 +236,60 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
         }
     };
-    private Button.OnClickListener onClick_btnDelete = new View.OnClickListener() {
+    private Button.OnClickListener onClick_btnDelete = new OnClickListener() {
         @Override
         public void onClick(View v) {
             //stuff happens here
+            final Dialog dialog = new Dialog(context);
+            dialog.setContentView(R.layout.activity_track_it_eq_open_plan);
+            dialog.setTitle("Delete Exercise Plan...");
+
+            Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancelOpen);
+            diaCancelButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+
+            // get a list of files from the local app plans
+            ListView lvPlan;
+            ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
+            lvPlan = (ListView)dialog.findViewById(R.id.lvPlans);
+
+            lvPlan.setAdapter(new ArrayAdapter<>(context,android.R.layout.simple_list_item_1,FilesInFolder));
+
+            lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+
+                    String data=(String)parent.getItemAtPosition(position);
+
+                    File dFile = new File(getString(R.string.local_data_path),data);
+                    Boolean deleted = dFile.delete();
+
+                    dialog.dismiss();
+
+                }
+            });
+            dialog.show();
+
         }
     };
-    private Button.OnClickListener onClick_btnSet = new View.OnClickListener() {
+    private Button.OnClickListener onClick_btnSet = new OnClickListener() {
         @Override
         public void onClick(View v) {
             buildDisplayLine(false,"","");
         }
     };
 
-    private Button.OnClickListener onClick_btnRemove = new View.OnClickListener() {
+    private Button.OnClickListener onClick_btnRemove = new OnClickListener() {
         @Override
         public void onClick(View v) {
             //stuff happens here
             int id = v.getId();
             Log.i(eTAG,"Selected item" + id);
             // now find the grid this button exists in ahd remove it
-            findViewById(id-300).setVisibility(View.GONE);
+            findViewById(id-300).setVisibility(GONE);
         }
     };
     //endregion
@@ -390,9 +426,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         if (files.length == 0)
             return null;
         else {
-            for (int ic=0; ic<files.length; ic++) {
-                MyFiles.add(files[ic].getName());
-            }
+            for (int ic=0; ic<files.length; ic++) MyFiles.add(files[ic].getName());
         }
 
         return MyFiles;
@@ -432,9 +466,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         ViewGroup view = (ViewGroup) findViewById(android.R.id.content);
 
         ArrayList<View> allGrids = getViewsByTag(view,"gridRow");
-        for (View grd: allGrids) {
-            grd.setVisibility(view.GONE);
-        }
+        for (View grd: allGrids) grd.setVisibility(GONE);
     }
     //endregion
 
@@ -458,7 +490,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         spinner.setOnItemSelectedListener(onItemSelected);
 
         GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);
-        grdEntry.setVisibility(View.INVISIBLE);
+        grdEntry.setVisibility(INVISIBLE);
     }
 
 
