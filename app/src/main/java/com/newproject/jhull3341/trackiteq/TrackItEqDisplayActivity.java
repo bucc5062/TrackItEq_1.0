@@ -10,6 +10,7 @@ import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -49,11 +50,13 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
     private static final String eTAG = "Exception";
     private ArrayList<String> currentPlan;
+    private long preTime = 5;
     private long planTime = 0;   // stored as secs
     private long legTime = 0;    // time remaining in a leg, stored in secs
-    private long preTime = 5;
     private String legGait = ""; // current gait to perform
     private int legNumber = 0;
+    private boolean openSession = false;
+
   //  private int totalSpeed = 0;         // holds the total speed per leg, changes when leg changes
    // private int avgSpeed = 0;           // holds the avg speed per leg, changes when leg changes
    // private int stepCount = 1;          // use to calculate the avg speed
@@ -70,6 +73,14 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private final static int LOCATION_REQUEST_INTERVAL = 1000;
     private final static int LOCATION_REQUEST_FASTEST_INTERVAL = 500;
     private final static String PACE_SPEED_UNITS = "kph";
+
+    // constants for saving data on orientation change
+    private final static String SAVE_TOTAL_TIME = "totalTime";
+    private final static String SAVE_LEG_TIME = "legTime";
+    private final static String SAVE_PACE = "Pace";
+    private final static String SAVE_OPEN_SESSION = "OpenSession";
+    private final static String SAVE_LEG_NUMBER = "legNumber";
+    private final static String SAVE_LEG_GAIT = "legGait";
 
     private TextView txtPace;
 
@@ -110,6 +121,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         setUpGoogleApiClientIfNeeded();
         createLocationRequest();
 
+
         setActivityMainListeners();  // set the various handers for the display
         soundStuff();          // Load the sounds and sound processing
 
@@ -138,6 +150,31 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+
+        outState.putLong(SAVE_TOTAL_TIME,planTime);
+        outState.putString(SAVE_LEG_GAIT,legGait);
+        outState.putInt(SAVE_LEG_NUMBER,legNumber);
+        outState.putLong(SAVE_LEG_TIME,legTime);
+        outState.putBoolean(SAVE_OPEN_SESSION,openSession);
+
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
+        super.onRestoreInstanceState(savedInstanceState, persistentState);
+
+        planTime = savedInstanceState.getLong(SAVE_TOTAL_TIME);
+        legGait = savedInstanceState.getString(SAVE_LEG_GAIT);
+        legNumber = savedInstanceState.getInt(SAVE_LEG_NUMBER);
+        legTime = savedInstanceState.getLong(SAVE_LEG_TIME);
+        openSession = savedInstanceState.getBoolean(SAVE_OPEN_SESSION);
+
+    }
+
     //region View Listeners
     private ImageButton.OnClickListener onClick_btnCreatePlans = new View.OnClickListener() {
         @Override
@@ -258,6 +295,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private void onOpenPlan() {
 
         // set and open the dialog view to allow user to select a plan to run
+
+        openSession = true;
+
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.activity_track_it_eq_open_plan);
         dialog.setTitle("Open Exercise Plan...");
@@ -310,6 +350,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private void onStopPlan() {
 
         // set and open the dialog view to allow user to select a plan to run
+
+        openSession = false;
+
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.activity_track_it_eq_confirm);
         dialog.setTitle("Closing Current Plan...");
@@ -598,7 +641,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         return (rad * 180.0 / Math.PI);
     }
     private void setActivityMainListeners() {
-
+        Log.i(eTAG, "setActivityMainListeners function 1");
         txtPace = (TextView) findViewById(R.id.txtAvgPace);
 
         TextView txt1 = (TextView) findViewById((R.id.txtAvgPace));
@@ -607,22 +650,31 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         txt2.setText(" ");
         TextView txt3 = (TextView) findViewById((R.id.txtTotalTime));
         txt3.setText(" ");
+        Log.i(eTAG, "setActivityMainListeners function 2");
 
+        Log.i(eTAG, "btnManagePlans function 2");
         ImageButton btnCreatePlan = (ImageButton) findViewById(R.id.btnManagePlans);
         btnCreatePlan.setOnClickListener(onClick_btnCreatePlans);
+        Log.i(eTAG, "btnOpenPlan function 2");
         ImageButton btnSelectPlan = (ImageButton) findViewById(R.id.btnOpenPlan);
         btnSelectPlan.setOnClickListener(onClick_btnOpenPlan);
+        Log.i(eTAG, "btnStartPlan function 2");
         ImageButton btnStartPlan = (ImageButton) findViewById(R.id.btnStartPlan);
         btnStartPlan.setOnClickListener(onClick_btnStartPlan);
+        Log.i(eTAG, "btnPausePlan function 2");
         ImageButton btnPausePlan = (ImageButton) findViewById(R.id.btnPausePlan);
         btnPausePlan.setOnClickListener(onClick_btnPausePlan);
+        Log.i(eTAG, "btnStopPlan function 2");
         ImageButton btnStopPlan = (ImageButton) findViewById(R.id.btnStopPlan);
         btnStopPlan.setOnClickListener(onClick_btnStopPlan);
+        Log.i(eTAG, "setActivityMainListeners function 3");
 
         createLocationRequest();
 
-        LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
-        btnActions.setVisibility(View.INVISIBLE);
+        if (!openSession) {
+            LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
+            btnActions.setVisibility(View.INVISIBLE);
+        }
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
