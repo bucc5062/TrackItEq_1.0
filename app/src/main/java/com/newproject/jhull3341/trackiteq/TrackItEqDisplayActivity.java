@@ -81,7 +81,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private final static String SAVE_OPEN_SESSION = "OpenSession";
     private final static String SAVE_LEG_NUMBER = "legNumber";
     private final static String SAVE_LEG_GAIT = "legGait";
-
+// this is a change
+    
     private TextView txtPace;
 
     //runs without a timer by reposting this handler at the end of the runnable
