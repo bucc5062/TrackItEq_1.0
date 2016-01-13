@@ -77,12 +77,12 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     // constants for saving data on orientation change
     private final static String SAVE_TOTAL_TIME = "totalTime";
     private final static String SAVE_LEG_TIME = "legTime";
-    private final static String SAVE_PACE = "Pace";
+    private final static String SAVE_CURRENT_PLAN = "currentPlan";
     private final static String SAVE_OPEN_SESSION = "OpenSession";
     private final static String SAVE_LEG_NUMBER = "legNumber";
     private final static String SAVE_LEG_GAIT = "legGait";
 // this is a change
-    
+
     private TextView txtPace;
 
     //runs without a timer by reposting this handler at the end of the runnable
@@ -108,7 +108,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.i(eTAG, "onCreate Display");
+        Log.i(eTAG, "onCreate");
 
         setTitle(R.string.activityMainTitle);
         setContentView(R.layout.activity_track_it_eq_display);
@@ -117,7 +117,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         if (checkPlayServices()) {
             Log.i(eTAG, "passed check services");
             // Building the GoogleApi client
-           // buildGoogleApiClient();
+            // buildGoogleApiClient();
         }
         setUpGoogleApiClientIfNeeded();
         createLocationRequest();
@@ -125,15 +125,32 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
         setActivityMainListeners();  // set the various handers for the display
         soundStuff();          // Load the sounds and sound processing
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
         client2 = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+        if (savedInstanceState != null) {
+
+            Log.i(eTAG, "onCreate orientation change");
+            planTime = savedInstanceState.getLong(SAVE_TOTAL_TIME);
+            legGait = savedInstanceState.getString(SAVE_LEG_GAIT);
+            legNumber = savedInstanceState.getInt(SAVE_LEG_NUMBER);
+            legTime = savedInstanceState.getLong(SAVE_LEG_TIME);
+            openSession = savedInstanceState.getBoolean(SAVE_OPEN_SESSION);
+            TextView legText = (TextView) findViewById(R.id.txtLegTime);
+            TextView totText = (TextView) findViewById(R.id.txtTotalTime);
+            totText.setText(displayTime(planTime));
+            legText.setText(String.format("%1s %2s", gaitLetter(legGait), displayTime(legTime)));
+            if (openSession) {
+                LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
+                btnActions.setVisibility(View.VISIBLE);
+                setActionButtons(getString(R.string.startButtonPushed));
+            }
+        }
+
     }
 
     @Override
     public void onConnected(Bundle bundle) {
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+      //  LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
     @Override
@@ -153,26 +170,28 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.i(eTAG, "onSaveInstanceState");
         outState.putLong(SAVE_TOTAL_TIME,planTime);
         outState.putString(SAVE_LEG_GAIT,legGait);
         outState.putInt(SAVE_LEG_NUMBER,legNumber);
         outState.putLong(SAVE_LEG_TIME,legTime);
         outState.putBoolean(SAVE_OPEN_SESSION,openSession);
+        outState.putStringArrayList(SAVE_CURRENT_PLAN,currentPlan);
 
     }
 
     @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
-        super.onRestoreInstanceState(savedInstanceState, persistentState);
-
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.i(eTAG, "onRestoreInstanceState");
         planTime = savedInstanceState.getLong(SAVE_TOTAL_TIME);
         legGait = savedInstanceState.getString(SAVE_LEG_GAIT);
         legNumber = savedInstanceState.getInt(SAVE_LEG_NUMBER);
         legTime = savedInstanceState.getLong(SAVE_LEG_TIME);
         openSession = savedInstanceState.getBoolean(SAVE_OPEN_SESSION);
+        currentPlan = savedInstanceState.getStringArrayList(SAVE_CURRENT_PLAN);
 
     }
 
@@ -340,7 +359,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
                 btnActions.setVisibility(View.VISIBLE);
                 setActionButtons(getString(R.string.stopButtonPushed));
-
+                //LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,mLocationRequest, (LocationListener) context);
+                
                 dialog.dismiss();
 
             }
@@ -370,6 +391,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             public void onClick(View v) {
                 resetCurrentPlanValues();
                 setActionButtons(getString(R.string.yesStopButtonPushed));
+                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (LocationListener) context);
                 dialog.dismiss();
             }
         });
@@ -388,7 +410,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     }
 
     private void LocationChanged(int currSpeed) {
-        Log.i(eTAG, "LocationChanged function");
 
         String sSpeed;
 
@@ -398,8 +419,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         } else {
             sSpeed = getString(R.string.noData);
         }
-
-        Log.i(eTAG, "rtn speed: " + sSpeed);
         txtPace.setText(sSpeed);
     }
     private int convertSpeed(Location locCurr,String units) {
@@ -475,7 +494,12 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     }
 
     private void setLegDisplay() {
-
+        Log.i(eTAG, "setLegDisplay");
+        Log.i(eTAG, "    planTime:" + planTime);
+        Log.i(eTAG, "    legGait:" + legGait);
+        Log.i(eTAG, "    legNumber:" + legNumber);
+        Log.i(eTAG, "    legTime:" + legTime);
+        Log.i(eTAG, "    openSession:" + openSession);
         TextView legText = (TextView) findViewById(R.id.txtLegTime);
         TextView totText = (TextView) findViewById(R.id.txtTotalTime);
         totText.setText(displayTime(planTime));
@@ -573,7 +597,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             String row;
             while ((row = br.readLine()) != null) {
                 rows.add(row);
-                Log.i(eTAG, row);
             }
             iFile.close();
 
@@ -651,24 +674,17 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         txt2.setText(" ");
         TextView txt3 = (TextView) findViewById((R.id.txtTotalTime));
         txt3.setText(" ");
-        Log.i(eTAG, "setActivityMainListeners function 2");
 
-        Log.i(eTAG, "btnManagePlans function 2");
         ImageButton btnCreatePlan = (ImageButton) findViewById(R.id.btnManagePlans);
         btnCreatePlan.setOnClickListener(onClick_btnCreatePlans);
-        Log.i(eTAG, "btnOpenPlan function 2");
         ImageButton btnSelectPlan = (ImageButton) findViewById(R.id.btnOpenPlan);
         btnSelectPlan.setOnClickListener(onClick_btnOpenPlan);
-        Log.i(eTAG, "btnStartPlan function 2");
         ImageButton btnStartPlan = (ImageButton) findViewById(R.id.btnStartPlan);
         btnStartPlan.setOnClickListener(onClick_btnStartPlan);
-        Log.i(eTAG, "btnPausePlan function 2");
         ImageButton btnPausePlan = (ImageButton) findViewById(R.id.btnPausePlan);
         btnPausePlan.setOnClickListener(onClick_btnPausePlan);
-        Log.i(eTAG, "btnStopPlan function 2");
         ImageButton btnStopPlan = (ImageButton) findViewById(R.id.btnStopPlan);
         btnStopPlan.setOnClickListener(onClick_btnStopPlan);
-        Log.i(eTAG, "setActivityMainListeners function 3");
 
         createLocationRequest();
 
