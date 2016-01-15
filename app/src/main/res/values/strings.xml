@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TrackItEq</string>
+    <string name="app_name">Eq Conditioning</string>
     <string name="label_Gait">Select Gait</string>
     <string name="label_time">Enter Time</string>
     <string-array name="gaits_array">

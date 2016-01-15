@@ -1,5 +1,6 @@
 package com.newproject.jhull3341.trackiteq;
 
+import android.app.ActionBar;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +11,7 @@ import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.PersistableBundle;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -39,6 +40,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class TrackItEqDisplayActivity extends AppCompatActivity
         implements LocationListener,
@@ -54,18 +56,20 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private long planTime = 0;   // stored as secs
     private long legTime = 0;    // time remaining in a leg, stored in secs
     private String legGait = ""; // current gait to perform
+    private String nextGait = ""; // Next gait to perform
     private int legNumber = 0;
     private boolean openSession = false;
+    private boolean timerRunning = false;
 
-  //  private int totalSpeed = 0;         // holds the total speed per leg, changes when leg changes
-   // private int avgSpeed = 0;           // holds the avg speed per leg, changes when leg changes
-   // private int stepCount = 1;          // use to calculate the avg speed
+
     Location locPrev;
+    TextToSpeech sayTime;           // use to annouce minutes remaining in leg
     final Context context = this;
     private SoundPool soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
     private int soundID;
     float actVolume, maxVolume, volume;
     private AudioManager audioManager;
+
     private Boolean loaded = false;
     private Boolean mRequestingLocationUpdates = false;
     private LocationRequest mLocationRequest;
@@ -81,6 +85,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private final static String SAVE_OPEN_SESSION = "OpenSession";
     private final static String SAVE_LEG_NUMBER = "legNumber";
     private final static String SAVE_LEG_GAIT = "legGait";
+    private final static String SAVE_TIMER_RUNNING = "timerRunning";
+    private final static String SAVE_PRE_TIME = "preTime";
+    private final static String SAVE_NEXT_GAIT = "nextGait";
 // this is a change
 
     private TextView txtPace;
@@ -122,7 +129,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         setUpGoogleApiClientIfNeeded();
         createLocationRequest();
 
-
         setActivityMainListeners();  // set the various handers for the display
         soundStuff();          // Load the sounds and sound processing
         client2 = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -132,18 +138,26 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             Log.i(eTAG, "onCreate orientation change");
             planTime = savedInstanceState.getLong(SAVE_TOTAL_TIME);
             legGait = savedInstanceState.getString(SAVE_LEG_GAIT);
+            nextGait = savedInstanceState.getString(SAVE_NEXT_GAIT);
             legNumber = savedInstanceState.getInt(SAVE_LEG_NUMBER);
             legTime = savedInstanceState.getLong(SAVE_LEG_TIME);
             openSession = savedInstanceState.getBoolean(SAVE_OPEN_SESSION);
+            timerRunning = savedInstanceState.getBoolean(SAVE_TIMER_RUNNING);
+            preTime = savedInstanceState.getLong(SAVE_PRE_TIME);
+
             TextView legText = (TextView) findViewById(R.id.txtLegTime);
             TextView totText = (TextView) findViewById(R.id.txtTotalTime);
             totText.setText(displayTime(planTime));
+            setLegColor();
             legText.setText(String.format("%1s %2s", gaitLetter(legGait), displayTime(legTime)));
-            if (openSession) {
+            if (openSession) {   // if we had opened plan we need to manage the play action buttons on the switch
                 LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
                 btnActions.setVisibility(View.VISIBLE);
                 setActionButtons(getString(R.string.startButtonPushed));
             }
+            if (timerRunning) {  // if we had the timer running, we need to restart it to keep things going.
+                timerHandler.postDelayed(timerRunnable, 0);
+             }
         }
 
     }
@@ -170,15 +184,24 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        timerHandler.removeCallbacks(timerRunnable);
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.i(eTAG, "onSaveInstanceState");
         outState.putLong(SAVE_TOTAL_TIME,planTime);
         outState.putString(SAVE_LEG_GAIT,legGait);
+        outState.putString(SAVE_NEXT_GAIT, nextGait);
         outState.putInt(SAVE_LEG_NUMBER,legNumber);
         outState.putLong(SAVE_LEG_TIME,legTime);
         outState.putBoolean(SAVE_OPEN_SESSION,openSession);
         outState.putStringArrayList(SAVE_CURRENT_PLAN,currentPlan);
+        outState.putBoolean(SAVE_TIMER_RUNNING,timerRunning);
+        outState.putLong(SAVE_PRE_TIME,preTime);
 
     }
 
@@ -217,6 +240,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 setActionButtons(getString(R.string.startButtonPushed));  // reset back to just the play if we stopped the plan
                 startLocationUpdates();
                 timerHandler.postDelayed(timerRunnable, 0);
+                timerRunning = true;
             }
 
         }
@@ -228,6 +252,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             // TODO: add a (fragment) or something to handle a Are you sure moment
             // if the user wants to end the plan before it is over.  This resets everything
             onStopPlan();
+            timerRunning = false;
         }
     };
     private ImageButton.OnClickListener onClick_btnPausePlan = new View.OnClickListener() {
@@ -237,6 +262,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             // this simply stops the timer and gps listener till the start button is pressed again
             // or the stop button
             timerHandler.removeCallbacks(timerRunnable);
+            timerRunning = false;
             stopLocationUpdates();
             setActionButtons(getString(R.string.pauseButtonPushed));  // reset back to just the play if we stopped the plan
         }
@@ -494,16 +520,11 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     }
 
     private void setLegDisplay() {
-        Log.i(eTAG, "setLegDisplay");
-        Log.i(eTAG, "    planTime:" + planTime);
-        Log.i(eTAG, "    legGait:" + legGait);
-        Log.i(eTAG, "    legNumber:" + legNumber);
-        Log.i(eTAG, "    legTime:" + legTime);
-        Log.i(eTAG, "    openSession:" + openSession);
+
         TextView legText = (TextView) findViewById(R.id.txtLegTime);
         TextView totText = (TextView) findViewById(R.id.txtTotalTime);
         totText.setText(displayTime(planTime));
-        legText.setText(String.format("%1s %2s", gaitLetter(legGait), displayTime(legTime)));
+        legText.setText(String.format("%1s %2s > %3s", gaitLetter(legGait), displayTime(legTime),gaitLetter(nextGait)));
 
     }
 
@@ -534,10 +555,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         //get the total plan time for initial display and display it along with control
         // buttons
         String[] legData = currentPlan.get(legNumber).split(",");
+
         legTime = Integer.parseInt(legData[1]) * 60;    //convert to seconds
         legGait = legData[0];
         setLegColor();
         legNumber++;   // increase for the next change
+        try {
+            String[] nextLegData = currentPlan.get(legNumber).split(",");
+            nextGait = nextLegData[0];
+        } catch (Exception ex) {
+            nextGait = "Finish";
+        }
+
+
 
     }
 
@@ -696,7 +726,14 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-
+        sayTime = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    sayTime.setLanguage(Locale.UK);
+                }
+            }
+        });
     }
 
     private void processTime() {
@@ -710,17 +747,36 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             planTime -= 1;   // remove a second
             legTime -= 1;    // remove a second from the leg as well
 
+            // on every minute, tell the user the minute remaining
+            // on every 30 seconds , play a sound
+            if ((legTime % 60) == 0 && legTime > 0) {
+                //soundPool.play(soundID, volume, volume, 1, 0, 1f);
+                int minute = (int)(legTime / 60);
+
+                sayTime.speak(Integer.toString(minute),TextToSpeech.QUEUE_FLUSH,null);
+
+            } else if ((legTime % 30) == 0 && legTime > 0) {
+                soundPool.play(soundID, volume, volume, 1, 0, .5f);
+
+            }
+
+            // 10 secs before the leg ends tell user
+            if (legTime == 10) {
+                sayTime.speak("Next up " + nextGait,TextToSpeech.QUEUE_FLUSH,null);
+            }
+
             // at 5 seconds to end of leg, play a bell again
             if (legTime <= 5) {
                 soundPool.play(soundID, volume, volume, 1, 0, 1f);
             }
+
+            // now set up the new leg data
             if (legTime == 0) {
                 setCurrentLeg();    // set up the next leg on zero
             }
             // set the total time and leg display
             setLegDisplay();
-            //LocationChanged(gps.currSpeed);
-           // gps.currSpeed = 0;
+
         }
     }
 
