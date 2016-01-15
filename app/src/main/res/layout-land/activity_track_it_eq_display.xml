@@ -7,6 +7,16 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.newproject.jhull3341.trackiteq.TrackItEqDisplayActivity">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="fill_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#c12323"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
     <GridLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -23,84 +33,85 @@
         android:layout_alignParentTop="true"
         android:id="@+id/relativeLayout2">
 
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:background="#d5d6d6"
-        android:id="@+id/relativeLayout">
-
-        <ImageButton
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:id="@+id/btnOpenPlan"
-            android:src="@mipmap/ic_openplan"
-            android:layout_gravity="center_vertical"
-            android:layout_alignLeft="@+id/btnManagePlans"
-            android:layout_alignStart="@+id/btnManagePlans"
-            android:scaleType="fitCenter" />
-
-        <ImageButton
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:id="@+id/btnManagePlans"
-            android:src="@mipmap/ic_createplan"
-            android:scaleType="fitCenter"
-            android:maxHeight="60sp"
-            android:longClickable="false"
-            android:maxWidth="60sp"
-            android:layout_below="@+id/btnOpenPlan"
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="#d5d6d6"
+            android:id="@+id/relativeLayout"
+            android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_marginTop="-10dp" />
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="180sp"
-            android:id="@+id/lyActionButtons"
-            android:layout_below="@+id/btnManagePlans"
-            android:layout_centerHorizontal="true">
+            android:layout_marginTop="51dp">
 
             <ImageButton
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:id="@+id/btnStartPlan"
-                android:src="@mipmap/ic_runplan"
+                android:id="@+id/btnOpenPlan"
+                android:src="@mipmap/ic_openplan"
+                android:layout_gravity="center_vertical"
+                android:layout_alignLeft="@+id/btnManagePlans"
+                android:layout_alignStart="@+id/btnManagePlans"
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:id="@+id/btnManagePlans"
+                android:src="@mipmap/ic_createplan"
                 android:scaleType="fitCenter"
-                android:layout_alignParentStart="true"
-                android:longClickable="false"
                 android:maxHeight="60sp"
+                android:longClickable="false"
                 android:maxWidth="60sp"
-                android:minHeight="60sp"
-                android:minWidth="60sp"
-                android:cropToPadding="false"
+                android:layout_below="@+id/btnOpenPlan"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
                 android:layout_marginTop="-10dp" />
 
-            <ImageButton
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:id="@+id/btnPausePlan"
-                android:src="@mipmap/ic_pauseplan"
-                android:layout_alignParentTop="false"
-                android:layout_centerHorizontal="true"
-                android:scaleType="fitCenter"
-                android:layout_marginTop="-10dp" />
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="180sp"
+                android:id="@+id/lyActionButtons"
+                android:layout_below="@+id/btnManagePlans"
+                android:layout_centerHorizontal="true">
 
-            <ImageButton
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:id="@+id/btnStopPlan"
-                android:src="@mipmap/ic_stopplan"
-                android:scaleType="fitCenter"
-                android:layout_centerVertical="true"
-                android:cropToPadding="true"
-                android:layout_marginTop="-10dp" />
-        </LinearLayout>
+                <ImageButton
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:id="@+id/btnStartPlan"
+                    android:src="@mipmap/ic_runplan"
+                    android:scaleType="fitCenter"
+                    android:layout_alignParentStart="true"
+                    android:longClickable="false"
+                    android:maxHeight="60sp"
+                    android:maxWidth="60sp"
+                    android:minHeight="60sp"
+                    android:minWidth="60sp"
+                    android:cropToPadding="false"
+                    android:layout_marginTop="-10dp" />
 
+                <ImageButton
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:id="@+id/btnPausePlan"
+                    android:src="@mipmap/ic_pauseplan"
+                    android:layout_alignParentTop="false"
+                    android:layout_centerHorizontal="true"
+                    android:scaleType="fitCenter"
+                    android:layout_marginTop="-10dp" />
+
+                <ImageButton
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:id="@+id/btnStopPlan"
+                    android:src="@mipmap/ic_stopplan"
+                    android:scaleType="fitCenter"
+                    android:layout_centerVertical="true"
+                    android:cropToPadding="true"
+                    android:layout_marginTop="-10dp" />
+            </LinearLayout>
+
+        </RelativeLayout>
     </RelativeLayout>
 
     <RelativeLayout
@@ -111,7 +122,7 @@
         android:layout_alignBottom="@+id/relativeLayout2">
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Leg Pace (avg/curr)"
@@ -122,8 +133,8 @@
             android:inputType="none"
             android:textColor="#e1e101"
             android:textAlignment="center"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
+            android:layout_marginBottom="26dp"
+            android:layout_above="@+id/txtAvgPace" />
 
         <TextView
             android:layout_width="match_parent"
@@ -137,10 +148,10 @@
             android:inputType="none"
             android:maxLength="8"
             android:textSize="50sp"
-            android:layout_below="@+id/txtPaceTitle"
-            android:layout_alignParentRight="false"
-            android:layout_alignParentEnd="false"
-            android:gravity="center_vertical|center" />
+            android:gravity="center_vertical|center"
+            android:layout_above="@+id/txtLegTime"
+            android:layout_alignLeft="@+id/txtPaceTitle"
+            android:layout_alignStart="@+id/txtPaceTitle" />
 
         <TextView
             android:layout_width="match_parent"
@@ -172,9 +183,10 @@
             android:maxLength="8"
             android:textSize="56sp"
             android:textAlignment="center"
-            android:layout_centerVertical="true"
-            android:layout_alignLeft="@+id/txtTotalTime"
-            android:layout_alignStart="@+id/txtTotalTime" />
+            android:layout_alignParentBottom="true"
+            android:layout_alignLeft="@+id/txtAvgPace"
+            android:layout_alignStart="@+id/txtAvgPace"
+            android:layout_marginBottom="87dp" />
 
         <TextView
             android:layout_width="match_parent"

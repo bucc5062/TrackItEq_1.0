@@ -34,5 +34,5 @@
     <string name="gps_network_not_enabled">GPS Network is not enabled</string>
     <string name="open_location_settings">Open Location Settings</string>
     <string name="Cancel">Cancel</string>
-
+    <string name="action_settings">Action Settings</string>
 </resources>
