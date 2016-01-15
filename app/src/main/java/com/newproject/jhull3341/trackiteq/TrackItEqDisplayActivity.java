@@ -102,7 +102,12 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             // do something here to display
 
             processTime();    // process what to be done on a sec by sec basis
-            timerHandler.postDelayed(this, 1000);
+            try {
+                timerHandler.postDelayed(this, 1000);
+            } catch (Exception ex){
+
+            }
+
         }
     };
     /**
@@ -373,6 +378,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 //get the total plan time for initial display and display it along with control
                 // buttons
                 planTime = getTotalPlanTime();
+
                 setCurrentLeg();
 
                 // this sets up the actual initial display
@@ -554,6 +560,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
         //get the total plan time for initial display and display it along with control
         // buttons
+
         String[] legData = currentPlan.get(legNumber).split(",");
 
         legTime = Integer.parseInt(legData[1]) * 60;    //convert to seconds
@@ -738,46 +745,54 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
     private void processTime() {
 
-        if (preTime > 0) {
-            // play a sound to let user know they got ten seconds to get ready before plan starts
-            preTime -= 1;
-            soundPool.play(soundID, volume, volume, 1, 0, 1f);
+        // now set up the new leg data
+        if (legTime == 0) {
+            if (legNumber >= currentPlan.size()) {
+                // we are done with the program, end it the timer.
+                timerHandler.removeCallbacks(timerRunnable);
+                timerHandler = null;
+                timerRunning = false;
+            } else {
+                setCurrentLeg();    // set up the next leg on zero if we still have legs to complete
+                setLegDisplay();    // set the total time and leg display
+            }
         } else {
-            //process the plan
-            planTime -= 1;   // remove a second
-            legTime -= 1;    // remove a second from the leg as well
-
-            // on every minute, tell the user the minute remaining
-            // on every 30 seconds , play a sound
-            if ((legTime % 60) == 0 && legTime > 0) {
-                //soundPool.play(soundID, volume, volume, 1, 0, 1f);
-                int minute = (int)(legTime / 60);
-
-                sayTime.speak(Integer.toString(minute),TextToSpeech.QUEUE_FLUSH,null);
-
-            } else if ((legTime % 30) == 0 && legTime > 0) {
-                soundPool.play(soundID, volume, volume, 1, 0, .5f);
-
-            }
-
-            // 10 secs before the leg ends tell user
-            if (legTime == 10) {
-                sayTime.speak("Next up " + nextGait,TextToSpeech.QUEUE_FLUSH,null);
-            }
-
-            // at 5 seconds to end of leg, play a bell again
-            if (legTime <= 5) {
+            if (preTime > 0) {
+                // play a sound to let user know they got ten seconds to get ready before plan starts
+                preTime -= 1;
                 soundPool.play(soundID, volume, volume, 1, 0, 1f);
-            }
+            } else {
+                //process the plan
+                planTime -= 1;   // remove a second
+                legTime -= 1;    // remove a second from the leg as well
 
-            // now set up the new leg data
-            if (legTime == 0) {
-                setCurrentLeg();    // set up the next leg on zero
-            }
-            // set the total time and leg display
-            setLegDisplay();
+                // on every minute, tell the user the minute remaining
+                // on every 30 seconds , play a sound
+                if ((legTime % 60) == 0 && legTime > 0) {
+                    //soundPool.play(soundID, volume, volume, 1, 0, 1f);
+                    int minute = (int) (legTime / 60);
 
+                    sayTime.speak(Integer.toString(minute), TextToSpeech.QUEUE_FLUSH, null);
+
+                } else if ((legTime % 30) == 0 && legTime > 0) {
+                    soundPool.play(soundID, volume, volume, 1, 0, .5f);
+
+                }
+
+                // 10 secs before the leg ends tell user
+                if (legTime == 10) {
+                    sayTime.speak("Next up " + nextGait, TextToSpeech.QUEUE_FLUSH, null);
+                }
+
+                // at 5 seconds to end of leg, play a bell again
+                if (legTime <= 5) {
+                    soundPool.play(soundID, volume, volume, 1, 0, 1f);
+                }
+            }
+            setLegDisplay();    // set the total time and leg display
         }
+
+
     }
 
     private void soundStuff() {
