@@ -13,9 +13,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -126,6 +128,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         setTitle(R.string.activityMainTitle);
         setContentView(R.layout.activity_track_it_eq_display);
 
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+
         // First we need to check availability of play services
         if (checkPlayServices()) {
             Log.i(eTAG, "passed check services");
@@ -151,29 +156,48 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             timerRunning = savedInstanceState.getBoolean(SAVE_TIMER_RUNNING);
             preTime = savedInstanceState.getLong(SAVE_PRE_TIME);
 
-            TextView legText = (TextView) findViewById(R.id.txtLegTime);
-            TextView totText = (TextView) findViewById(R.id.txtTotalTime);
-            totText.setText(displayTime(planTime));
-            setLegColor();
-            legText.setText(String.format("%1s %2s", gaitLetter(legGait), displayTime(legTime)));
-            if (openSession) {   // if we had opened plan we need to manage the play action buttons on the switch
-                LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
-                btnActions.setVisibility(View.VISIBLE);
-                setActionButtons(getString(R.string.startButtonPushed));
+            if (legGait != "") {
+                TextView legText = (TextView) findViewById(R.id.txtLegTime);
+                TextView totText = (TextView) findViewById(R.id.txtTotalTime);
+                totText.setText(displayTime(planTime));
+                setLegColor();
+                legText.setText(String.format("%1s %2s", gaitLetter(legGait), displayTime(legTime)));
+                if (openSession) {   // if we had opened plan we need to manage the play action buttons on the switch
+                    LinearLayout btnActions = (LinearLayout) findViewById((R.id.lyActionButtons));
+                    btnActions.setVisibility(View.VISIBLE);
+                    setActionButtons(getString(R.string.startButtonPushed));
+                }
+                if (timerRunning) {  // if we had the timer running, we need to restart it to keep things going.
+                    timerHandler.postDelayed(timerRunnable, 0);
+                }
             }
-            if (timerRunning) {  // if we had the timer running, we need to restart it to keep things going.
-                timerHandler.postDelayed(timerRunnable, 0);
-             }
+
         }
 
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
+        Log.i("Exception", "Set up menu");
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu,menu);
 
         return super.onCreateOptionsMenu(menu);
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.action_exit:
+                this.finishAffinity();
+                break;
+            case R.id.action_settings:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
