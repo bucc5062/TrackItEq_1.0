@@ -397,6 +397,11 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         // get a list of files from the local app plans
         ListView lvPlan;
         ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
+        if (FilesInFolder.size() == 0) {
+            Toast.makeText(this,"No Files to open",Toast.LENGTH_LONG).show();
+            return;
+        }
+
         lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
         lvPlan.setAdapter(new customArrayAdapter<>(context, android.R.layout.simple_list_item_1, FilesInFolder));
         lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
