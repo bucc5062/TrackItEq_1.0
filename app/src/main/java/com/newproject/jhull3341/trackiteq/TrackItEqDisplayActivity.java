@@ -221,7 +221,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     public void onLocationChanged(Location location) {
         Log.i(eTAG,"onLocationChanged provider: " + location.getProvider() + " ");
         LocationChanged(convertSpeed(location, "mpm"));
-        //saveCurrentLocation(location);
+        saveCurrentLocation(location);
     }
 
     @Override
