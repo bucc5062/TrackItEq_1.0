@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_exit"
-        android:icon="@mipmap/exit_me"
+        android:icon="@drawable/ic_cancel_24dp"
         android:title="@string/activityMainTitle"
         app:showAsAction="ifRoom"/>
     <item android:id="@+id/action_settings"

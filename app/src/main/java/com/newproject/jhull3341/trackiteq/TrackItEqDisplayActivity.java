@@ -15,6 +15,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -64,7 +65,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private int legNumber = 0;
     private boolean openSession = false;
     private boolean timerRunning = false;
-
+    private long avgSpeed = 0;
+    private long totalSpeed = 0;
+    private long spdCount = 1;
 
     Location locPrev;
     TextToSpeech sayTime;           // use to annouce minutes remaining in leg
@@ -92,6 +95,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private final static String SAVE_TIMER_RUNNING = "timerRunning";
     private final static String SAVE_PRE_TIME = "preTime";
     private final static String SAVE_NEXT_GAIT = "nextGait";
+    private final static String SAVE_TOTAL_SPEED = "totalSpeed";
+    private final static String SAVE_AVG_SPEED = "avgSpeed";
+    private final static String SAVE_SPD_COUNT = "spdCount";
+
 // this is a change
 
     private TextView txtPace;
@@ -213,7 +220,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     @Override
     public void onLocationChanged(Location location) {
         Log.i(eTAG,"onLocationChanged provider: " + location.getProvider() + " ");
-        LocationChanged(convertSpeed(location,"mpm"));
+        LocationChanged(convertSpeed(location, "mpm"));
+        //saveCurrentLocation(location);
     }
 
     @Override
@@ -231,15 +239,18 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.i(eTAG, "onSaveInstanceState");
-        outState.putLong(SAVE_TOTAL_TIME,planTime);
-        outState.putString(SAVE_LEG_GAIT,legGait);
+        outState.putLong(SAVE_TOTAL_TIME, planTime);
+        outState.putString(SAVE_LEG_GAIT, legGait);
         outState.putString(SAVE_NEXT_GAIT, nextGait);
-        outState.putInt(SAVE_LEG_NUMBER,legNumber);
-        outState.putLong(SAVE_LEG_TIME,legTime);
-        outState.putBoolean(SAVE_OPEN_SESSION,openSession);
-        outState.putStringArrayList(SAVE_CURRENT_PLAN,currentPlan);
-        outState.putBoolean(SAVE_TIMER_RUNNING,timerRunning);
-        outState.putLong(SAVE_PRE_TIME,preTime);
+        outState.putInt(SAVE_LEG_NUMBER, legNumber);
+        outState.putLong(SAVE_LEG_TIME, legTime);
+        outState.putBoolean(SAVE_OPEN_SESSION, openSession);
+        outState.putStringArrayList(SAVE_CURRENT_PLAN, currentPlan);
+        outState.putBoolean(SAVE_TIMER_RUNNING, timerRunning);
+        outState.putLong(SAVE_PRE_TIME, preTime);
+        outState.putLong(SAVE_TOTAL_SPEED,totalSpeed);
+        outState.putLong(SAVE_AVG_SPEED,avgSpeed);
+        outState.putLong(SAVE_SPD_COUNT,spdCount);
 
     }
 
@@ -397,8 +408,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         // get a list of files from the local app plans
         ListView lvPlan;
         ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
-        if (FilesInFolder.size() == 0) {
-            Toast.makeText(this,"No Files to open",Toast.LENGTH_LONG).show();
+        if (FilesInFolder == null) {
+            Toast toast = new Toast(this);
+            toast.setGravity(Gravity.TOP,0,0);
+            toast.makeText(this,"No Files to open, Please create one!",Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -430,8 +443,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 btnActions.setVisibility(View.VISIBLE);
                 setActionButtons(getString(R.string.stopButtonPushed));
                 //LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,mLocationRequest, (LocationListener) context);
-                
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (LocationListener) context);
+
                 dialog.dismiss();
 
             }
@@ -485,11 +498,28 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
         // calculate the avg speed of the leg for display, but only when speed is > 0
         if (currSpeed > 0) {
-            sSpeed = String.format("%1$04d",currSpeed);
+
+            totalSpeed += currSpeed;
+            avgSpeed = totalSpeed / spdCount;
+            spdCount += 1;
+
+            sSpeed = String.format("%1$04d",avgSpeed);
+
         } else {
             sSpeed = getString(R.string.noData);
         }
         txtPace.setText(sSpeed);
+    }
+    private void saveCurrentLocation(Location location) {
+
+        double lat = location.getLatitude();
+        double lon = location.getLongitude();
+        long currTime = location.getTime();
+        float bearing = location.getBearing();
+
+        // we will write this data out to some storage area for later retrieval so it can be
+        // user to review the run.
+
     }
     private int convertSpeed(Location locCurr,String units) {
 
@@ -547,6 +577,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         legTime = 0;
         planTime = 0;
         legNumber = 0;
+        avgSpeed = 0;
+        totalSpeed = 0;
+        spdCount = 1;
+
         TextView txtPace = (TextView) findViewById(R.id.txtAvgPace);
         txtPace.setText(" ");
         TextView txtLeg = (TextView) findViewById(R.id.txtLegTime);
@@ -600,6 +634,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         // buttons
 
         String[] legData = currentPlan.get(legNumber).split(",");
+
+        avgSpeed = 0;
+        totalSpeed = 0;
+        spdCount = 1;
 
         legTime = Integer.parseInt(legData[1]) * 60;    //convert to seconds
         legGait = legData[0];
@@ -809,8 +847,12 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 if ((legTime % 60) == 0 && legTime > 0) {
                     //soundPool.play(soundID, volume, volume, 1, 0, 1f);
                     int minute = (int) (legTime / 60);
+                    if (minute == 1) {
+                        sayTime.speak(Integer.toString(minute) + " minute", TextToSpeech.QUEUE_FLUSH, null);
+                    } else {
+                        sayTime.speak(Integer.toString(minute) + " minutes", TextToSpeech.QUEUE_FLUSH, null);
+                    }
 
-                    sayTime.speak(Integer.toString(minute), TextToSpeech.QUEUE_FLUSH, null);
 
                 } else if ((legTime % 30) == 0 && legTime > 0) {
                     soundPool.play(soundID, volume, volume, 1, 0, .5f);
@@ -819,7 +861,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
                 // 10 secs before the leg ends tell user
                 if (legTime == 10) {
-                    sayTime.speak("Next up " + nextGait, TextToSpeech.QUEUE_FLUSH, null);
+                    sayTime.speak("Next leg " + nextGait, TextToSpeech.QUEUE_FLUSH, null);
                 }
 
                 // at 5 seconds to end of leg, play a bell again

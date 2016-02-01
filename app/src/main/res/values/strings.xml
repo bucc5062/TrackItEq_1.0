@@ -16,7 +16,7 @@
     <string name="btnCancel">Cancel</string>
     <string name="savePlanLabel">Enter name of plan</string>
     <string name="openTitle">Select from the list of saved plans</string>
-    <string name="activityMainTitle">Track Conditioning v.91</string>
+    <string name="activityMainTitle">Track Conditioning v.93</string>
     <string name="activityManagePlans">Manage Plans</string>
     <string name="btnDelTitle">Del</string>
     <string name="dlgSaveTitle">Save Exercise Plan...</string>
