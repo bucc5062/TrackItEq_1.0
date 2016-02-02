@@ -3,6 +3,7 @@ package com.newproject.jhull3341.trackiteq;
 import android.app.ActionBar;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
@@ -43,8 +44,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
 public class TrackItEqDisplayActivity extends AppCompatActivity
@@ -57,6 +61,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
     private static final String eTAG = "Exception";
     private ArrayList<String> currentPlan;
+    private ArrayList<String>  currentGPSPositions;
     private long preTime = 5;
     private long planTime = 0;   // stored as secs
     private long legTime = 0;    // time remaining in a leg, stored in secs
@@ -288,6 +293,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             if (currentPlan.size() != 0) {
                 setActionButtons(getString(R.string.startButtonPushed));  // reset back to just the play if we stopped the plan
                 startLocationUpdates();
+                currentGPSPositions.clear();
                 timerHandler.postDelayed(timerRunnable, 0);
                 timerRunning = true;
             }
@@ -516,6 +522,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         double lon = location.getLongitude();
         long currTime = location.getTime();
         float bearing = location.getBearing();
+
+        String saveLoc = lat + "," + lon + "," + currTime + "," + bearing;
+
+        currentGPSPositions.add(saveLoc);
 
         // we will write this data out to some storage area for later retrieval so it can be
         // user to review the run.
@@ -828,6 +838,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 timerHandler.removeCallbacks(timerRunnable);
                 timerHandler = null;
                 timerRunning = false;
+                writeOutTheGPSLocations();
             } else {
                 setCurrentLeg();    // set up the next leg on zero if we still have legs to complete
                 setLegDisplay();    // set the total time and leg display
@@ -874,7 +885,34 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
 
     }
+    private void writeOutTheGPSLocations() {
 
+        String fileData = "";
+        Date date = new Date();
+        String currDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
+        String fileName = "gpsdata-" + currDate + ".cvs";
+        for (String gps : currentGPSPositions) {
+            fileData += gps + "\n";
+        }
+
+        writeToFile(fileName, fileData);
+    }
+    public void writeToFile(String fName, String allData) {
+
+        ContextWrapper c = new ContextWrapper(this);
+        Log.i(eTAG,c.getApplicationInfo().dataDir);
+
+        try {
+            File file = new File(getString(R.string.local_data_path),fName);
+            FileWriter oFile = new FileWriter(file);    // no append
+            oFile.write(allData);
+            oFile.flush();
+            oFile.close();
+        }
+        catch (IOException e) {
+            Log.i(eTAG, e.getMessage());
+        }
+    }
     private void soundStuff() {
 
         // AudioManager audio settings for adjusting the volume
