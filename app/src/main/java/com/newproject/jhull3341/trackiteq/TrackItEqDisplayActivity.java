@@ -151,6 +151,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         }
         setUpGoogleApiClientIfNeeded();
         createLocationRequest();
+        currentGPSPositions = new ArrayList<>();
 
         setActivityMainListeners();  // set the various handers for the display
         soundStuff();          // Load the sounds and sound processing
@@ -524,9 +525,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         float bearing = location.getBearing();
 
         String saveLoc = lat + "," + lon + "," + currTime + "," + bearing;
-
-        currentGPSPositions.add(saveLoc);
-
+        Log.i(eTAG,"saveloc= " + saveLoc);
+        if (saveLoc != null) {
+            currentGPSPositions.add(saveLoc);
+        }
         // we will write this data out to some storage area for later retrieval so it can be
         // user to review the run.
 
@@ -889,8 +891,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
         String fileData = "";
         Date date = new Date();
-        String currDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
-        String fileName = "gpsdata-" + currDate + ".cvs";
+        String currDate = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(date);
+        String fileName = "gpsdata-" + currDate + ".gps";
         for (String gps : currentGPSPositions) {
             fileData += gps + "\n";
         }
