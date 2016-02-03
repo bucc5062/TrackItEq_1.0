@@ -460,15 +460,28 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         Log.i(eTAG,c.getApplicationInfo().dataDir);
 
         try {
-            File file = new File(getString(R.string.local_data_path),fName);
-            FileWriter oFile = new FileWriter(file);    // no append
-            oFile.write(allData);
-            oFile.flush();
-            oFile.close();
+            boolean itsOkay = checkCreateDirectory(getString(R.string.local_data_path));
+            if (itsOkay) {
+                File file = new File(getString(R.string.local_data_path), fName);
+                FileWriter oFile = new FileWriter(file);    // no append
+                oFile.write(allData);
+                oFile.flush();
+                oFile.close();
+            } else {
+                Log.i(eTAG,"Could not make data directory");
+            }
         }
         catch (IOException e) {
             Log.i(eTAG, e.getMessage());
         }
+    }
+    private boolean checkCreateDirectory(String dirName) {
+        File folder = new File(dirName);
+        boolean success = true;
+        if (!folder.exists()) {
+            success = folder.mkdir();
+        }
+        return success;
     }
     public ArrayList<String> GetFiles(String DirectoryPath) {
 

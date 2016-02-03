@@ -26,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -143,6 +144,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
+        ImageView gpsNotify =  (ImageView) findViewById(R.id.imgGPSNotify);
+        gpsNotify.setImageResource(R.mipmap.ic_gps_not_connected);
+
         // First we need to check availability of play services
         if (checkPlayServices()) {
             Log.i(eTAG, "passed check services");
@@ -216,11 +220,14 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     @Override
     public void onConnected(Bundle bundle) {
       //  LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        ImageView gpsNotify =  (ImageView) findViewById(R.id.imgGPSNotify);
+        gpsNotify.setImageResource(R.mipmap.ic_gps_connected);
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        ImageView gpsNotify =  (ImageView) findViewById(R.id.imgGPSNotify);
+        gpsNotify.setImageResource(R.mipmap.ic_gps_not_connected);
     }
 
     @Override
@@ -232,13 +239,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
+        ImageView gpsNotify =  (ImageView) findViewById(R.id.imgGPSNotify);
+        gpsNotify.setImageResource(R.mipmap.ic_gps_not_connected);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        timerHandler.removeCallbacks(timerRunnable);
+        try {
+            timerHandler.removeCallbacks(timerRunnable);
+        } catch (Exception ex) {
+            // do nothing it is all ready gone
+        }
+
     }
 
     @Override
@@ -524,7 +537,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         long currTime = location.getTime();
         float bearing = location.getBearing();
 
-        String saveLoc = lat + "," + lon + "," + currTime + "," + bearing;
+        String saveLoc = lat + "," + lon + "," + avgSpeed + "," + currTime + "," + bearing;
         Log.i(eTAG,"saveloc= " + saveLoc);
         if (saveLoc != null) {
             currentGPSPositions.add(saveLoc);
@@ -841,6 +854,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 timerHandler = null;
                 timerRunning = false;
                 writeOutTheGPSLocations();
+                stopLocationUpdates();
+                setActionButtons(getString(R.string.yesStopButtonPushed));  // reset back to just the play if we stopped the plan
             } else {
                 setCurrentLeg();    // set up the next leg on zero if we still have legs to complete
                 setLegDisplay();    // set the total time and leg display
@@ -893,23 +908,30 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         Date date = new Date();
         String currDate = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(date);
         String fileName = "gpsdata-" + currDate + ".gps";
+
         for (String gps : currentGPSPositions) {
             fileData += gps + "\n";
         }
-
+        Log.i(eTAG,"writeOutTheGPSLocations: " + fileName);
         writeToFile(fileName, fileData);
     }
     public void writeToFile(String fName, String allData) {
 
         ContextWrapper c = new ContextWrapper(this);
-        Log.i(eTAG,c.getApplicationInfo().dataDir);
+        Log.i(eTAG, c.getApplicationInfo().dataDir);
 
         try {
-            File file = new File(getString(R.string.local_data_path),fName);
-            FileWriter oFile = new FileWriter(file);    // no append
-            oFile.write(allData);
-            oFile.flush();
-            oFile.close();
+            boolean itsOkay = checkCreateDirectory(getString(R.string.local_gps_path));
+            if (itsOkay) {
+                File file = new File(getString(R.string.local_gps_path), fName);
+                Log.i(eTAG, "writeToFile path: " + file.getAbsolutePath());
+                FileWriter oFile = new FileWriter(file);    // no append
+                oFile.write(allData);
+                oFile.flush();
+                oFile.close();
+            } else {
+                Log.i(eTAG,"Could not make gps directory");
+            }
         }
         catch (IOException e) {
             Log.i(eTAG, e.getMessage());
@@ -964,7 +986,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
     protected void stopLocationUpdates() {
         Log.i(eTAG, "stopLocationUpdates");
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
     private boolean checkPlayServices() {
@@ -986,7 +1008,14 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         }
         return true;
     }
-
+    private boolean checkCreateDirectory(String dirName) {
+        File folder = new File(dirName);
+        boolean success = true;
+        if (!folder.exists()) {
+            success = folder.mkdir();
+        }
+        return success;
+    }
     //endregion
     protected class customArrayAdapter<String> extends ArrayAdapter<String> {
 

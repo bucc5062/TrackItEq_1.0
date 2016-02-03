@@ -9,7 +9,7 @@
         <item>Gallop</item>
     </string-array>
     <string name="local_data_path">/sdcard/Android/data/com.newproject.jhull3341.trackiteq/data</string>
-
+    <string name="local_gps_path">/sdcard/Android/data/com.newproject.jhull3341.trackiteq/gps</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="saveplan">Save</string>

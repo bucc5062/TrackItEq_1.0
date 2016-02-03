@@ -118,7 +118,8 @@
             android:layout_height="fill_parent"
             android:layout_alignTop="@+id/relativeLayout"
             android:layout_toRightOf="@+id/relativeLayout"
-            android:layout_toEndOf="@+id/relativeLayout">
+            android:layout_toEndOf="@+id/relativeLayout"
+            android:background="#b7b8b7">
 
             <TextView
                 android:layout_width="fill_parent"
@@ -137,7 +138,7 @@
                 android:layout_alignParentStart="true" />
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="56dp"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="000/0009"
@@ -148,10 +149,9 @@
                 android:inputType="none"
                 android:maxLength="8"
                 android:textSize="50sp"
-                android:gravity="center_vertical|center"
+                android:gravity="center_vertical|center|right"
                 android:layout_below="@+id/txtPaceTitle"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true" />
+                android:layout_alignParentEnd="true" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -221,6 +221,16 @@
                 android:layout_below="@+id/txtLegTime"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imgGPSNotify"
+                android:layout_above="@+id/txtViewGait"
+                android:layout_alignTop="@+id/txtAvgPace"
+                android:src="@mipmap/ic_gps_not_connected"
+                android:background="#b7b8b7"
+                android:layout_marginLeft="50dp" />
         </RelativeLayout>
     </RelativeLayout>
 
