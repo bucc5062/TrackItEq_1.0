@@ -5,8 +5,10 @@
     <string-array name="gaits_array">
         <item>Walk</item>
         <item>Trot</item>
-        <item>Canter</item>
-        <item>Gallop</item>
+        <item>Beginner Novice</item>
+        <item>Novice</item>
+        <item>Training</item>
+        <item>Prelim</item>
     </string-array>
     <string name="local_data_path">/sdcard/Android/data/com.newproject.jhull3341.trackiteq/data</string>
     <string name="local_gps_path">/sdcard/Android/data/com.newproject.jhull3341.trackiteq/gps</string>
@@ -16,7 +18,7 @@
     <string name="btnCancel">Cancel</string>
     <string name="savePlanLabel">Enter name of plan</string>
     <string name="openTitle">Select from the list of saved plans</string>
-    <string name="activityMainTitle">Track Conditioning v.99</string>
+    <string name="activityMainTitle">Track Conditioning v1.01</string>
     <string name="activityManagePlans">Manage Plans</string>
     <string name="btnDelTitle">Del</string>
     <string name="dlgSaveTitle">Save Exercise Plan...</string>

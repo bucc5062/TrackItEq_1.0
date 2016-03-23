@@ -47,10 +47,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
 public class TrackItEqDisplayActivity extends AppCompatActivity
         implements LocationListener,
@@ -72,11 +74,14 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private boolean openSession = false;
     private boolean timerRunning = false;
     private long avgSpeed = 0;
+    private long gpsSpeed = 0;
     private long totalSpeed = 0;
     private long spdCount = 1;
 
+    private Map<String,Integer> gaitPace;
+
     Location locPrev;
-    TextToSpeech sayTime;           // use to annouce minutes remaining in leg
+    TextToSpeech sayTime;           // use to announce minutes remaining in leg
     final Context context = this;
     private SoundPool soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
     private int soundID;
@@ -135,6 +140,13 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        gaitPace.put("W", 107);
+        gaitPace.put("T", 220);
+        gaitPace.put("B", 350);
+        gaitPace.put("N", 380);
+        gaitPace.put("T", 420);
+        gaitPace.put("P", 520);
 
         Log.i(eTAG, "onCreate");
 
@@ -520,6 +532,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         if (currSpeed > 0) {
 
             totalSpeed += currSpeed;
+            gpsSpeed = currSpeed;
             avgSpeed = totalSpeed / spdCount;
             spdCount += 1;
 
@@ -534,10 +547,14 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
         double lat = location.getLatitude();
         double lon = location.getLongitude();
-        long currTime = location.getTime();
+        //long currTime = location.getTime();
+        // See notes below
+        DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date date = new Date(location.getTime());
+        String formatted = format.format(date);
         float bearing = location.getBearing();
 
-        String saveLoc = lat + "," + lon + "," + avgSpeed + "," + currTime + "," + bearing;
+        String saveLoc = lat + "," + lon + "," + avgSpeed + "," + gpsSpeed + "," + spdCount + "," + formatted + "," + bearing;
         Log.i(eTAG,"saveloc= " + saveLoc);
         if (saveLoc != null) {
             currentGPSPositions.add(saveLoc);
@@ -881,15 +898,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                         sayTime.speak(Integer.toString(minute) + " minutes", TextToSpeech.QUEUE_FLUSH, null);
                     }
 
-
                 } else if ((legTime % 30) == 0 && legTime > 0) {
                     soundPool.play(soundID, volume, volume, 1, 0, .5f);
-
                 }
 
                 // 10 secs before the leg ends tell user
                 if (legTime == 10) {
-                    sayTime.speak("Next leg " + nextGait, TextToSpeech.QUEUE_FLUSH, null);
+                    String gait = gaitLetter(nextGait);
+                    String endIt = "";
+                    int pace = gaitPace.get(gait);
+
+                    if (gait == "B" || gait == "N" || gait == "T" || gait == "P") { endIt = " canter"; }
+
+                    sayTime.speak("Next leg " + nextGait + endIt, TextToSpeech.QUEUE_FLUSH, null);
                 }
 
                 // at 5 seconds to end of leg, play a bell again
