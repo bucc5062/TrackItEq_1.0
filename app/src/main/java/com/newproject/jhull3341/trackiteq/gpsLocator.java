@@ -2,6 +2,8 @@ package com.newproject.jhull3341.trackiteq;
 import android.location.Location;
 import static android.location.Location.*;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
 
 /**
  * Created by jhull3341 on 12/8/2015.

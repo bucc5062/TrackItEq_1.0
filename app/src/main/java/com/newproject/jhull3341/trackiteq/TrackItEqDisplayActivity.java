@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -50,9 +51,11 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class TrackItEqDisplayActivity extends AppCompatActivity
         implements LocationListener,
@@ -77,6 +80,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private long gpsSpeed = 0;
     private long totalSpeed = 0;
     private long spdCount = 1;
+    private int sayItCount = 0;
+    private boolean sayItVolume = true;
+
+    private gpsLocator mygps;
 
     private Map<String,Integer> gaitPace;
 
@@ -141,6 +148,70 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        gaitPace = new Map<String, Integer>() {
+            @Override
+            public void clear() {
+
+            }
+
+            @Override
+            public boolean containsKey(Object key) {
+                return false;
+            }
+
+            @Override
+            public boolean containsValue(Object value) {
+                return false;
+            }
+
+            @NonNull
+            @Override
+            public Set<Entry<String, Integer>> entrySet() {
+                return null;
+            }
+
+            @Override
+            public Integer get(Object key) {
+                return null;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return false;
+            }
+
+            @NonNull
+            @Override
+            public Set<String> keySet() {
+                return null;
+            }
+
+            @Override
+            public Integer put(String key, Integer value) {
+                return null;
+            }
+
+            @Override
+            public void putAll(Map<? extends String, ? extends Integer> map) {
+
+            }
+
+            @Override
+            public Integer remove(Object key) {
+                return null;
+            }
+
+            @Override
+            public int size() {
+                return 0;
+            }
+
+            @NonNull
+            @Override
+            public Collection<Integer> values() {
+                return null;
+            }
+        };
         gaitPace.put("W", 107);
         gaitPace.put("T", 220);
         gaitPace.put("B", 350);
@@ -355,6 +426,18 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
             // This will allow the user to select a plan from a list of pre-made plans
             onOpenPlan();
+        }
+    };
+    private ImageButton.OnClickListener onClick_btnPaceVolume = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            ImageButton btnPaceVolume = (ImageButton) findViewById(R.id.btnPaceVolume);
+
+            if (sayItVolume) {
+                btnPaceVolume.setImageResource(R.mipmap.ic_vol_off);
+            } else {
+                btnPaceVolume.setImageResource(R.mipmap.ic_vol_on);
+            }
         }
     };
 
@@ -840,6 +923,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         btnPausePlan.setOnClickListener(onClick_btnPausePlan);
         ImageButton btnStopPlan = (ImageButton) findViewById(R.id.btnStopPlan);
         btnStopPlan.setOnClickListener(onClick_btnStopPlan);
+        ImageButton btnPaceVolume = (ImageButton) findViewById(R.id.btnPaceVolume);
+        btnPaceVolume.setOnClickListener(onClick_btnPaceVolume);
 
         createLocationRequest();
 
@@ -865,62 +950,98 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
         // now set up the new leg data
         if (legTime == 0) {
-            if (legNumber >= currentPlan.size()) {
-                // we are done with the program, end it the timer.
-                timerHandler.removeCallbacks(timerRunnable);
-                timerHandler = null;
-                timerRunning = false;
-                writeOutTheGPSLocations();
-                stopLocationUpdates();
-                setActionButtons(getString(R.string.yesStopButtonPushed));  // reset back to just the play if we stopped the plan
-            } else {
-                setCurrentLeg();    // set up the next leg on zero if we still have legs to complete
-                setLegDisplay();    // set the total time and leg display
-            }
+            processTimeZeroLegTime();
         } else {
+
+            long mod60 = legTime % 60;
+            long mod30 = legTime % 30;
+            long mod03 = legTime % 3;
+
             if (preTime > 0) {
                 // play a sound to let user know they got ten seconds to get ready before plan starts
                 preTime -= 1;
                 soundPool.play(soundID, volume, volume, 1, 0, 1f);
             } else {
-                //process the plan
-                planTime -= 1;   // remove a second
-                legTime -= 1;    // remove a second from the leg as well
-
-                // on every minute, tell the user the minute remaining
-                // on every 30 seconds , play a sound
-                if ((legTime % 60) == 0 && legTime > 0) {
-                    //soundPool.play(soundID, volume, volume, 1, 0, 1f);
-                    int minute = (int) (legTime / 60);
-                    if (minute == 1) {
-                        sayTime.speak(Integer.toString(minute) + " minute", TextToSpeech.QUEUE_FLUSH, null);
-                    } else {
-                        sayTime.speak(Integer.toString(minute) + " minutes", TextToSpeech.QUEUE_FLUSH, null);
-                    }
-
-                } else if ((legTime % 30) == 0 && legTime > 0) {
-                    soundPool.play(soundID, volume, volume, 1, 0, .5f);
-                }
-
-                // 10 secs before the leg ends tell user
-                if (legTime == 10) {
-                    String gait = gaitLetter(nextGait);
-                    String endIt = "";
-                    int pace = gaitPace.get(gait);
-
-                    if (gait == "B" || gait == "N" || gait == "T" || gait == "P") { endIt = " canter"; }
-
-                    sayTime.speak("Next leg " + nextGait + endIt, TextToSpeech.QUEUE_FLUSH, null);
-                }
-
-                // at 5 seconds to end of leg, play a bell again
-                if (legTime <= 5) {
-                    soundPool.play(soundID, volume, volume, 1, 0, 1f);
-                }
+                processTimeAndPlan(mod60,mod30,mod03);
             }
             setLegDisplay();    // set the total time and leg display
         }
 
+
+    }
+    private void processTimeZeroLegTime() {
+
+        if (legNumber >= currentPlan.size()) {
+            // we are done with the program, end it the timer.
+            timerHandler.removeCallbacks(timerRunnable);
+            timerHandler = null;
+            timerRunning = false;
+            writeOutTheGPSLocations();
+            stopLocationUpdates();
+            setActionButtons(getString(R.string.yesStopButtonPushed));  // reset back to just the play if we stopped the plan
+        } else {
+            setCurrentLeg();    // set up the next leg on zero if we still have legs to complete
+            setLegDisplay();    // set the total time and leg display
+        }
+    }
+    private void processTimeAndPlan(long mod60, long mod30, long mod03) {
+
+        //process the plan
+        planTime -= 1;   // remove a second
+        legTime -= 1;    // remove a second from the leg as well
+
+        // on every minute, tell the user the minute remaining
+        // on every 30 seconds , play a sound
+        // on every 3 secs, check the pace and say on, over, under
+        if (mod60 == 0 && legTime > 0) {
+            //soundPool.play(soundID, volume, volume, 1, 0, 1f);
+            int minute = (int) (legTime / 60);
+            if (minute == 1) {
+                sayTime.speak(Integer.toString(minute) + " minute", TextToSpeech.QUEUE_FLUSH, null);
+            } else {
+                sayTime.speak(Integer.toString(minute) + " minutes", TextToSpeech.QUEUE_FLUSH, null);
+            }
+
+        } else if (mod30 == 0 && legTime > 0) {
+            soundPool.play(soundID, volume, volume, 1, 0, .5f);
+        } else if (mod03 == 0 && legTime > 10) {
+            if (sayItVolume) {
+                sayOverUnderPace();
+            }
+        }
+
+        // 10 secs before the leg ends tell user
+        if (legTime == 10) {
+            String gait = gaitLetter(nextGait);
+            String endIt = "";
+
+            // add the word canter when the gait is such.  Makes more sense when listening
+            if (gait == "B" || gait == "N" || gait == "T" || gait == "P") { endIt = " canter"; }
+
+            sayTime.speak("Next leg " + nextGait + endIt, TextToSpeech.QUEUE_FLUSH, null);
+        }
+
+        // at 5 seconds to end of leg, play a bell again
+        if (legTime <= 5) {
+            soundPool.play(soundID, volume, volume, 1, 0, 1f);
+        }
+    }
+    private void sayOverUnderPace() {
+
+        long reqPace = gaitPace.get(gaitLetter(legGait));
+        if (avgSpeed >= (reqPace-5) && avgSpeed <= (reqPace +10)) {
+            // we are in the zone, say it three times.
+            if (sayItCount <=3){
+                sayTime.speak("On Pace", TextToSpeech.QUEUE_FLUSH, null);
+                sayItCount++;
+            }
+        } else if (avgSpeed < (reqPace-5)) {
+            sayTime.speak("Below Pace", TextToSpeech.QUEUE_FLUSH, null);
+            sayItCount = 0;
+        } else if (avgSpeed > (reqPace+10)) {
+            sayTime.speak("Above Pace", TextToSpeech.QUEUE_FLUSH, null);
+            sayItCount = 0;
+        }
 
     }
     private void writeOutTheGPSLocations() {

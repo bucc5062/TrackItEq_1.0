@@ -44,14 +44,15 @@
                 android:layout_width="200dp"
                 android:layout_height="match_parent"
                 android:id="@+id/lyActionButtons"
-                android:gravity="fill_horizontal|center_horizontal">
+                android:gravity="fill_horizontal|center_horizontal"
+                android:layout_weight="1.09">
 
                 <ImageButton
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/btnStartPlan"
                     android:src="@mipmap/ic_runplan"
-                    android:layout_marginLeft="15dp" />
+                    android:layout_marginLeft="10dp" />
 
                 <ImageButton
                     android:layout_width="60dp"
@@ -66,6 +67,13 @@
                     android:src="@mipmap/ic_stopplan"
                     android:layout_marginLeft="0dp" />
 
+                <ImageButton
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btnPaceVolume"
+                    android:src="@mipmap/ic_vol_on"
+                    android:layout_marginLeft="5dp" />
+
             </LinearLayout>
 
             <ImageButton
@@ -73,7 +81,7 @@
                 android:layout_height="match_parent"
                 android:id="@+id/btnManagePlans"
                 android:src="@mipmap/ic_createplan"
-                android:layout_marginLeft="15dp" />
+                android:layout_marginLeft="5dp" />
 
         </LinearLayout>
     </GridLayout>

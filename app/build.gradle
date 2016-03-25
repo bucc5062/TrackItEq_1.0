@@ -4,9 +4,9 @@ android {
     signingConfigs {
         config {
             keyAlias 'android'
-            keyPassword 'android'
-            storeFile file('c:/users/jhull3341/.android/debug.keystore')
-            storePassword 'android'
+            keyPassword 'sammtag'
+            storeFile file('C:/Users/jhull3341/keystore.jks')
+            storePassword 'sammtag'
         }
     }
     compileSdkVersion 23
