@@ -53,6 +53,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -148,70 +149,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        gaitPace = new Map<String, Integer>() {
-            @Override
-            public void clear() {
+        gaitPace = new Hashtable<>();
 
-            }
-
-            @Override
-            public boolean containsKey(Object key) {
-                return false;
-            }
-
-            @Override
-            public boolean containsValue(Object value) {
-                return false;
-            }
-
-            @NonNull
-            @Override
-            public Set<Entry<String, Integer>> entrySet() {
-                return null;
-            }
-
-            @Override
-            public Integer get(Object key) {
-                return null;
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @NonNull
-            @Override
-            public Set<String> keySet() {
-                return null;
-            }
-
-            @Override
-            public Integer put(String key, Integer value) {
-                return null;
-            }
-
-            @Override
-            public void putAll(Map<? extends String, ? extends Integer> map) {
-
-            }
-
-            @Override
-            public Integer remove(Object key) {
-                return null;
-            }
-
-            @Override
-            public int size() {
-                return 0;
-            }
-
-            @NonNull
-            @Override
-            public Collection<Integer> values() {
-                return null;
-            }
-        };
         gaitPace.put("W", 107);
         gaitPace.put("T", 220);
         gaitPace.put("B", 350);
@@ -435,8 +374,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
             if (sayItVolume) {
                 btnPaceVolume.setImageResource(R.mipmap.ic_vol_off);
+                sayItVolume = false;
             } else {
                 btnPaceVolume.setImageResource(R.mipmap.ic_vol_on);
+                sayItVolume = true;
             }
         }
     };

@@ -18,7 +18,7 @@
     <string name="btnCancel">Cancel</string>
     <string name="savePlanLabel">Enter name of plan</string>
     <string name="openTitle">Select from the list of saved plans</string>
-    <string name="activityMainTitle">Track Conditioning v1.01</string>
+    <string name="activityMainTitle">Track Conditioning v1.02</string>
     <string name="activityManagePlans">Manage Plans</string>
     <string name="btnDelTitle">Del</string>
     <string name="dlgSaveTitle">Save Exercise Plan...</string>
@@ -96,4 +96,5 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
+    <string name="set_volume">Set Volume</string>
 </resources>

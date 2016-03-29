@@ -51,7 +51,8 @@
                 android:layout_gravity="center_vertical"
                 android:layout_alignLeft="@+id/btnManagePlans"
                 android:layout_alignStart="@+id/btnManagePlans"
-                android:scaleType="fitCenter" />
+                android:scaleType="fitCenter"
+                android:layout_marginTop="-15dp" />
 
             <ImageButton
                 android:layout_width="60dp"
@@ -65,7 +66,7 @@
                 android:layout_below="@+id/btnOpenPlan"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:layout_marginTop="-10dp" />
+                android:layout_marginTop="-15dp" />
 
             <LinearLayout
                 android:orientation="vertical"
@@ -73,7 +74,8 @@
                 android:layout_height="180sp"
                 android:id="@+id/lyActionButtons"
                 android:layout_below="@+id/btnManagePlans"
-                android:layout_centerHorizontal="true">
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="-10dp">
 
                 <ImageButton
                     android:layout_width="60dp"
@@ -88,7 +90,7 @@
                     android:minHeight="60sp"
                     android:minWidth="60sp"
                     android:cropToPadding="false"
-                    android:layout_marginTop="-10dp" />
+                    android:layout_marginTop="-15dp" />
 
                 <ImageButton
                     android:layout_width="60dp"
@@ -98,7 +100,7 @@
                     android:layout_alignParentTop="false"
                     android:layout_centerHorizontal="true"
                     android:scaleType="fitCenter"
-                    android:layout_marginTop="-10dp" />
+                    android:layout_marginTop="-15dp" />
 
                 <ImageButton
                     android:layout_width="60dp"
@@ -108,7 +110,17 @@
                     android:scaleType="fitCenter"
                     android:layout_centerVertical="true"
                     android:cropToPadding="true"
-                    android:layout_marginTop="-10dp" />
+                    android:layout_marginTop="-15dp" />
+
+                <ImageButton
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:id="@+id/btnPaceVolume"
+                    android:src="@mipmap/ic_vol_on"
+                    android:scaleType="fitCenter"
+                    android:layout_centerVertical="true"
+                    android:cropToPadding="true"
+                    android:layout_marginTop="-15dp" />
             </LinearLayout>
 
         </RelativeLayout>
