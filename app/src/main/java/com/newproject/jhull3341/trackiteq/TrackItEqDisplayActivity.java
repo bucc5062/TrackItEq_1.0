@@ -149,13 +149,15 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        eqDatabaseService eqDB = new eqDatabaseService(context);
+
         gaitPace = new Hashtable<>();
 
-        gaitPace.put("W", 107);
-        gaitPace.put("T", 220);
-        gaitPace.put("B", 350);
-        gaitPace.put("N", 380);
-        gaitPace.put("T", 420);
+        gaitPace.put("W", 90);
+        gaitPace.put("T", 200);
+        gaitPace.put("B", 325);
+        gaitPace.put("N", 375);
+        gaitPace.put("T", 410);
         gaitPace.put("P", 520);
 
         Log.i(eTAG, "onCreate");
@@ -936,7 +938,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         // on every 3 secs, check the pace and say on, over, under
         if (mod60 == 0 && legTime > 0) {
             //soundPool.play(soundID, volume, volume, 1, 0, 1f);
-            int minute = (int) (legTime / 60);
+            int minute = ((int) (legTime / 60)) + 1;
             if (minute == 1) {
                 sayTime.speak(Integer.toString(minute) + " minute", TextToSpeech.QUEUE_FLUSH, null);
             } else {
@@ -970,16 +972,16 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private void sayOverUnderPace() {
 
         long reqPace = gaitPace.get(gaitLetter(legGait));
-        if (avgSpeed >= (reqPace-5) && avgSpeed <= (reqPace +10)) {
+        if (gpsSpeed >= (reqPace-5) && gpsSpeed <= (reqPace +10)) {
             // we are in the zone, say it three times.
             if (sayItCount <=3){
                 sayTime.speak("On Pace", TextToSpeech.QUEUE_FLUSH, null);
                 sayItCount++;
             }
-        } else if (avgSpeed < (reqPace-5)) {
+        } else if (gpsSpeed < (reqPace-5)) {
             sayTime.speak("Below Pace", TextToSpeech.QUEUE_FLUSH, null);
             sayItCount = 0;
-        } else if (avgSpeed > (reqPace+10)) {
+        } else if (gpsSpeed > (reqPace+10)) {
             sayTime.speak("Above Pace", TextToSpeech.QUEUE_FLUSH, null);
             sayItCount = 0;
         }

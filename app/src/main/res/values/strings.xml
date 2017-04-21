@@ -5,7 +5,7 @@
     <string-array name="gaits_array">
         <item>Walk</item>
         <item>Trot</item>
-        <item>Beginner Novice</item>
+        <item>Beginner-Novice</item>
         <item>Novice</item>
         <item>Training</item>
         <item>Prelim</item>
@@ -18,7 +18,7 @@
     <string name="btnCancel">Cancel</string>
     <string name="savePlanLabel">Enter name of plan</string>
     <string name="openTitle">Select from the list of saved plans</string>
-    <string name="activityMainTitle">Track Conditioning v1.02</string>
+    <string name="activityMainTitle">Track Conditioning v1.05</string>
     <string name="activityManagePlans">Manage Plans</string>
     <string name="btnDelTitle">Del</string>
     <string name="dlgSaveTitle">Save Exercise Plan...</string>
