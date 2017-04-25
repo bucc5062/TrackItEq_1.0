@@ -26,7 +26,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         dbPath = context.getDatabasePath(DATABASE_NAME).toString();
         appPath = context.getApplicationInfo().dataDir;
-
+        createDB(DATABASE_NAME);
     }
 
     @Override
