@@ -237,6 +237,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 break;
             case R.id.action_settings:
                 break;
+            case R.id.action_gaits:
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

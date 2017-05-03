@@ -4,6 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import java.io.Console;
 
 /**
  * Created by jhull3341 on 3/31/2016.
@@ -16,17 +19,18 @@ public class eqDatabaseService extends SQLiteOpenHelper {
     private static final String TABLE_EQ_SETTINGS = "eqSettings_dt";
     private static final String TABLE_EQ_CUSTOM_GAITS = "eqCustomGaits_dt";
 
-    private static final String DATABASE_NAME = "EqConditioning.db";
+    private static final String DATABASE_NAME = "EqConditioning_db";
 
     private String dbPath = "";
     private String appPath = "";
+    private static final String eTAG = "Exception";
 
     public eqDatabaseService(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
 
         dbPath = context.getDatabasePath(DATABASE_NAME).toString();
         appPath = context.getApplicationInfo().dataDir;
-        createDB(DATABASE_NAME);
+
     }
 
     @Override
@@ -45,21 +49,8 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EQ_GPSPOSITIONS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EQ_SETTINGS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EQ_CUSTOM_GAITS);
-        onCreate(db);
+
     }
-    //region database db creation
-    private void createDB(String name) {
-
-        // first, let's double check that there is no DB for if there is, we d'not want to re-create
-
-        SQLiteDatabase checkdb = null;
-
-        checkdb = SQLiteDatabase.openDatabase(appPath + "//" + name,null,SQLiteDatabase.OPEN_READONLY);
-        if (checkdb == null) {
-            SQLiteDatabase.openOrCreateDatabase(appPath + "//" + name,null);
-        }
-    }
-    //endregion
     //region database table creation
     private void createEQSessionsTable(SQLiteDatabase db) {
 

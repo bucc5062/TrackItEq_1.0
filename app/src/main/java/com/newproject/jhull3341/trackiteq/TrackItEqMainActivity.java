@@ -27,6 +27,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -96,11 +97,34 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                 break;
             case R.id.action_settings:
                 break;
+            case R.id.action_gaits:
+                setGaitAction();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
     }
+    private void setGaitAction() {
 
+        Log.i(eTAG, "onOptionsItemSelected_gaits");
+        // this send the app over to the plan management tool activity
+        Intent buildIntent = new Intent(context, TrackItEqManageGaits.class);
+        startActivity(buildIntent);
+//        final Dialog dialog = new Dialog(context);
+//        dialog.setContentView(R.layout.activity_manage_gaits);
+//        dialog.setTitle(R.string.dlgGaitTitle);
+//
+//        // set the return action
+//        ImageButton diaCancelButton = (ImageButton) dialog.findViewById(R.id.btnGaitGoBack);
+//        diaCancelButton.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.dismiss();
+//            }
+//        });
+//
+//        dialog.show();
+    }
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);

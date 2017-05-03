@@ -20,8 +20,10 @@
     <string name="openTitle">Select from the list of saved plans</string>
     <string name="activityMainTitle">Track Conditioning v1.05</string>
     <string name="activityManagePlans">Manage Plans</string>
+    <string name="activityManageGaits">Manage Gaits</string>
     <string name="btnDelTitle">Del</string>
     <string name="dlgSaveTitle">Save Exercise Plan...</string>
+    <string name="dlgGaitTitle">Manage Gaits...</string>
     <string name="ConfirmTitle">Comfirmation of Action</string>
     <string name="AreYouSure">Are you sure you wish to continue?</string>
     <string name="btnYesTitle">Yes</string>
@@ -36,7 +38,8 @@
     <string name="gps_network_not_enabled">GPS Network is not enabled</string>
     <string name="open_location_settings">Open Location Settings</string>
     <string name="Cancel">Cancel</string>
-    <string name="action_settings">Action Settings</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_gaits">Gaits</string>
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->
