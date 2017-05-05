@@ -149,8 +149,6 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        eqDatabaseService eqDB = new eqDatabaseService(context);
-
         gaitPace = new Hashtable<>();
 
         gaitPace.put("W", 90);

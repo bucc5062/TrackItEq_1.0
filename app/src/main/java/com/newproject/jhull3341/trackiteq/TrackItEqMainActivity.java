@@ -44,6 +44,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static android.view.View.*;
 
@@ -110,20 +112,6 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         // this send the app over to the plan management tool activity
         Intent buildIntent = new Intent(context, TrackItEqManageGaits.class);
         startActivity(buildIntent);
-//        final Dialog dialog = new Dialog(context);
-//        dialog.setContentView(R.layout.activity_manage_gaits);
-//        dialog.setTitle(R.string.dlgGaitTitle);
-//
-//        // set the return action
-//        ImageButton diaCancelButton = (ImageButton) dialog.findViewById(R.id.btnGaitGoBack);
-//        diaCancelButton.setOnClickListener(new OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                dialog.dismiss();
-//            }
-//        });
-//
-//        dialog.show();
     }
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
@@ -575,16 +563,37 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         btnDelete.setOnClickListener(onClick_btnDelete);
         Button btnSet = (Button) findViewById(R.id.btnSet);
         btnSet.setOnClickListener(onClick_btnSet);
-        // set the spinner (dropdown) widget
-        Spinner spinner = (Spinner) findViewById(R.id.spinner_gaits);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.gaits_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(onItemSelected);
+
+        setSpinner();
 
         GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);
         grdEntry.setVisibility(INVISIBLE);
     }
+    private void setSpinner() {
 
+        //get and build the list of gaits in the DB
 
+        // set the spinner (dropdown) widget
+        Spinner spinner = (Spinner) findViewById(R.id.spinner_gaits);
+       // ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, gaits, android.R.layout.simple_spinner_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,allGaits());
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(onItemSelected);
+    }
+    private ArrayList<String> allGaits() {
+        ArrayList<String> gaits = new ArrayList<String>();
+
+        // get the gaits
+        eqDatabaseService eqDB = new eqDatabaseService(context,2);
+        List<eqCustomGaits_dt> dbGaits = eqDB.getAllGaits();
+
+        // loop through and pull out gait names and save in array
+        for (eqCustomGaits_dt row : dbGaits) {
+            gaits.add(row.getGait().toString());
+        }
+
+        return gaits;
+    }
 }

@@ -4,28 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/my_gaits_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#236dc1"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
-
-    <GridView
-        android:id="@+id/grdGaitList"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_below="@+id/my_gaits_toolbar"
-        android:layout_alignParentStart="true" />
-
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="68dp"
-        android:layout_below="@+id/grdGaitList"
-        android:layout_centerHorizontal="true"
         android:orientation="horizontal"
-        android:id="@+id/linearLayout">
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true">
 
         <ImageButton
             android:id="@+id/btnAddIt"
@@ -44,18 +29,83 @@
         <ImageButton
             android:id="@+id/btnDeleteIt"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            tools:src="@mipmap/ic_deleteit" />
+            android:layout_height="match_parent"
+            android:layout_weight="1.00"
+            android:src="@android:drawable/ic_menu_delete" />
 
     </LinearLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_gaits_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#236dc1"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/rltAddGait"
+        android:layout_above="@+id/linearLayout">
+
+        <ListView
+            android:id="@+id/lstGaits"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@+id/lstHeader"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="22dp" />
+
+        <ListView
+            android:id="@+id/lstHeader"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@android:color/holo_blue_dark" />
+
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/rltAddGait"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/linearLayout"
+        android:layout_height="150dp"
+        android:layout_below="@+id/my_gaits_toolbar"
         android:layout_centerHorizontal="true">
+
+        <EditText
+            android:id="@+id/txtPace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/txtGait"
+            android:ems="10"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/textView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/textView7"
+            android:layout_below="@+id/txtGait"
+            android:text="Pace: "
+            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:textColor="@color/colorPrimaryDark" />
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignTop="@+id/txtGait"
+            android:layout_marginStart="15dp"
+            android:text="Gait Name:"
+            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:textColor="@color/colorPrimaryDark" />
 
         <EditText
             android:id="@+id/txtGait"
@@ -66,7 +116,6 @@
             android:layout_marginTop="54dp"
             android:ems="10"
             android:inputType="textPersonName"
-            android:text="Name"
             android:textColor="@color/colorPrimaryDark" />
 
         <TextView
@@ -79,38 +128,7 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="30sp" />
+
     </RelativeLayout>
-
-    <TextView
-        android:id="@+id/textView7"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/linearLayout"
-        android:layout_marginStart="11dp"
-        android:layout_marginTop="58dp"
-        android:text="Gait Name:"
-        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-        android:textColor="@color/colorPrimaryDark" />
-
-    <TextView
-        android:id="@+id/textView8"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="35dp"
-        android:text="Pace: "
-        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-        android:textColor="@color/colorPrimaryDark"
-        android:layout_below="@+id/textView7"
-        android:layout_alignStart="@+id/textView7" />
-
-    <EditText
-        android:id="@+id/txtPace"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/textView8"
-        android:ems="10"
-        android:inputType="number" />
 
 </RelativeLayout>
