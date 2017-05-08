@@ -796,6 +796,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         long TotalSecs = 0;
         for (String element : currentPlan) {
             String[] elements = element.split(",");
+            Log.i(eTAG, "name: " + elements[0] + " Time: " + elements[1] +  "totalsecs: " + TotalSecs);
             TotalSecs += (Integer.parseInt(elements[1])) * 60;  // convert to seconds
         }
 

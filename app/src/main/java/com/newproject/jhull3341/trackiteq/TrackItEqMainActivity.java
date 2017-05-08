@@ -271,9 +271,9 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                         ArrayList<View> allGrids = getViewsByTag(view, "elementData");
                         for (View grd : allGrids) {
                             TextView txt = (TextView) grd;
-                            String[] elementData = txt.getText().toString().split(" ");
+                            String[] elementData = txt.getText().toString().split(" - ");
                             String gait = elementData[1];
-                            String time = elementData[3];
+                            String time = elementData[2];
                             fileData += gait + "," + time + "\n";
                         }
                     } catch (Exception e) {
