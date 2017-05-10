@@ -24,12 +24,16 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -60,6 +64,14 @@ public class TrackItEqMainActivity extends AppCompatActivity {
     private static final String eTAG = "Exception";
     final Context context = this;
 
+    // global variables needed for processing the add gaits display
+    private ListView lstGaits;
+    private ListAdapter adapter;
+
+    private ArrayList<HashMap<String, String>> mylist;
+
+    // *****
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +85,18 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         setSupportActionBar(mySecondaryToolbar);
 
         setActivityBuildListeners();
+
+        // set the objects needed to handle the dynamic gaits list
+        ListView lstGaits = (ListView) findViewById(R.id.lstMyGaits);
+        mylist = new ArrayList<HashMap<String, String>>();
+        try {
+            adapter = new SimpleAdapter(this, mylist, R.layout.gaits_detail,
+                    new String[] { "keyGait", "keyTime" }, new int[] {
+                    R.id.txtdisplayGait, R.id.txtdisplayTime  });
+            lstGaits.setAdapter(adapter);
+        } catch (Exception e) {
+
+        }
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -175,6 +199,19 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         }
     };
 
+    private ListView.OnItemClickListener onClick_lstGaits = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//            TextView txtgait = (TextView) view.findViewById(R.id.txtgName);
+//            TextView txtpace = (TextView) view.findViewById(R.id.txtgPace);
+//
+//            TextView pGait = (TextView) findViewById(R.id.txtGait);
+//            TextView ppace = (TextView) findViewById(R.id.txtPace);
+//            pGait.setText(txtgait.getText());
+//            ppace.setText(txtpace.getText());
+
+        }
+    };
     private Button.OnClickListener onClick_btnNew = new OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -265,32 +302,45 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                 public void onClick(View v) {
 
                     String fileData = "";
+                    EditText txtplanName = (EditText) dialog.findViewById(R.id.txtPlanName);
+                    String planName = txtplanName.getText().toString();
 
                     try {
-                        ViewGroup view = (ViewGroup) findViewById(android.R.id.content);
-                        ArrayList<View> allGrids = getViewsByTag(view, "elementData");
-                        for (View grd : allGrids) {
-                            TextView txt = (TextView) grd;
-                            String[] elementData = txt.getText().toString().split(" - ");
-                            String gait = elementData[1];
-                            String time = elementData[2];
-                            fileData += gait + "," + time + "\n";
+
+                        // load the elements into the database
+
+                        Integer elementCount = 0;
+                        eqDatabaseService eqDB = new eqDatabaseService(context, 2);
+
+                        for (HashMap<String, String> aRow : mylist) {
+                            String gait = aRow.get("keyGait");
+                            String time = aRow.get("keyTime");
+                            eqSessions_dt sessionRow = new eqSessions_dt();
+
+                            sessionRow.set_planName(planName);
+                            sessionRow.set_gait(gait);
+                            sessionRow.set_time(Integer.parseInt(time));
+                            sessionRow.set_elementNumber(elementCount);
+
+                            eqDB.insertCurrentPlanElement(sessionRow);
+                            elementCount += 1;
+
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+
+                        List<eqSessions_dt> justchecking = eqDB.getCurrentPlan(planName);
+
+                        for (eqSessions_dt row : justchecking) {
+                            Log.i(eTAG, row.get_planName() + "," + row.get_elementNumber() + "," + row.get_gait() + "," + row.get_time());
+                        }
+
+                        eqDB.close();
+
+                    } catch (Exception ex) {
+
                     }
 
-                    EditText planName = (EditText)dialog.findViewById(R.id.txtPlanName);
-
-                    try {
-                        writeToFile(planName.getText().toString() + ".csv", fileData);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
                     clearGrid();
                     dialog.dismiss();
-
-
                 }
             });
 
@@ -346,7 +396,19 @@ public class TrackItEqMainActivity extends AppCompatActivity {
     private Button.OnClickListener onClick_btnSet = new OnClickListener() {
         @Override
         public void onClick(View v) {
-            buildDisplayLine(false,"","");
+
+            Spinner spinner = (Spinner) findViewById(R.id.spinner_gaits);
+            TextView textGait = (TextView) spinner.getSelectedView();
+            String gtResult = textGait.getText().toString();
+
+            TextView txtTime = (TextView) findViewById(R.id.txtSelected);
+            String tmeResult = txtTime.getText().toString();
+
+            buildDisplayLine(false,gtResult,tmeResult);
+
+            txtTime.setText("");
+            spinner.requestFocus();
+
         }
     };
 
@@ -367,77 +429,12 @@ public class TrackItEqMainActivity extends AppCompatActivity {
     @TargetApi(Build.VERSION_CODES.M)
     private void buildDisplayLine(boolean isStart, String gait, String time) {
 
-        // create a layout params to define how we add
+        HashMap<String, String> map2 = new HashMap<String, String>();
+        map2.put("keyGait",gait);                  // put the col data in
+        map2.put("keyTime", time);      // put the col data in
+        mylist.add(map2);
 
-        LinearLayout.LayoutParams imgLayout =
-                new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT);
-
-        // create a grid layout to add controls
-        GridLayout newGrid = new GridLayout(this);
-        newGrid.setId(100 + rowCount);
-        newGrid.setColumnCount(2);
-        newGrid.setTag("gridRow");
-
-        // set text for display row
-        String gtResult;
-        String tmeResult;
-        String display;
-        
-        if (gait.equals("")) {
-            Spinner spinner = (Spinner) findViewById(R.id.spinner_gaits);
-            TextView textGait = (TextView) spinner.getSelectedView();
-            gtResult = textGait.getText().toString();
-            spinner.requestFocus();
-        } else
-        {
-            gtResult = gait;
-        }
-        if (time.equals("")) {
-            TextView txtTime = (TextView) findViewById(R.id.txtSelected);
-            tmeResult = txtTime.getText().toString();
-            txtTime.setText("");
-        } else
-        {
-            tmeResult = time;
-        }
-
-        if (isStart) {
-            display = rowCount + ": " + "Start" + " - " + "0" + " min";
-        } else {
-            display = rowCount + ": " + gtResult + " - " + tmeResult + " min";
-        }
-
-        // create a text view control
-        TextView newText = new TextView(this);
-        Resources r = getResources();
-        int pc = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 240, r.getDisplayMetrics());
-        newText.setWidth(pc);
-        LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        llp.setMargins(50, 0, 0, 0); // llp.setMargins(left, top, right, bottom);
-        newText.setLayoutParams(llp);
-        //newText.setTextAppearance(android.R.style.TextAppearance_Large);
-        newText.setText(display);
-        newText.setId(300 + rowCount);
-        newText.setTag("elementData");
-        // create a new button
-        Button newButton = new Button(this);
-        newButton.setLayoutParams(imgLayout);
-        newButton.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
-        newButton.getLayoutParams().width = toPixels(79);
-        newButton.setText(R.string.btnDelTitle);
-        newButton.setId(400 + rowCount);
-        newButton.setOnClickListener(onClick_btnRemove);
-
-        // now add to the original grid layout
-        newGrid.addView(newText);
-        newGrid.addView(newButton);
-
-        LinearLayout my_root = (LinearLayout) findViewById(R.id.my_root);
-        LinearLayout A = new LinearLayout(this);
-        A.setOrientation(LinearLayout.HORIZONTAL);
-        my_root.addView(newGrid);
-        rowCount += 1;
+        ((BaseAdapter)(adapter)).notifyDataSetChanged();
 
     }
     private int toPixels(int dp) {
@@ -540,14 +537,12 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         return rows;
     }
     private void clearGrid() {
-        
-        // clean up the grid any time we start to work with a plan, new or opened.
-        
-        rowCount = 1;
-        ViewGroup view = (ViewGroup) findViewById(android.R.id.content);
 
-        ArrayList<View> allGrids = getViewsByTag(view,"gridRow");
-        for (View grd: allGrids) grd.setVisibility(GONE);
+        // clean up the grid any time we start to work with a plan, new or opened.
+
+        mylist.clear();
+        ((BaseAdapter)(adapter)).notifyDataSetChanged();
+
     }
     //endregion
 
@@ -563,7 +558,8 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         btnDelete.setOnClickListener(onClick_btnDelete);
         Button btnSet = (Button) findViewById(R.id.btnSet);
         btnSet.setOnClickListener(onClick_btnSet);
-
+        ListView lstGaits = (ListView) findViewById(R.id.lstMyGaits);
+        lstGaits.setOnItemClickListener(onClick_lstGaits);
         setSpinner();
 
         GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);

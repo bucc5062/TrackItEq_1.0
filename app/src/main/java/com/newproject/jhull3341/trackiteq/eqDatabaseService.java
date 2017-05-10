@@ -7,7 +7,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -15,16 +18,35 @@ import java.util.List;
  */
 public class eqDatabaseService extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 4;
     private static final String TABLE_EQ_SESSIONS = "eqSessions_dt";
+    private static final String TABLE_EQ_GPSPOSITION_MASTER = "eqGPSPositionMst_dt";
     private static final String TABLE_EQ_GPSPOSITIONS = "eqGPSPositions_dt";
     private static final String TABLE_EQ_SETTINGS = "eqSettings_dt";
     private static final String TABLE_EQ_CUSTOM_GAITS = "eqCustomGaits_dt";
     private static final String DATABASE_NAME = "EqConditioning_db";
     private static final String eTAG = "Exception";
 
+    private enum GPS_COLUMNS {
+        gps_session_id,
+        gps_row_num,
+        gps_lat,
+        gps_lon,
+        gps_avgSpeed,
+        gps_gpsSpeed,
+        gps_spdCount,
+        gps_positionDate,
+        gps_bearing;
+    }
+    private enum GAITS_COLUMNS {
+        Name,
+        Category,
+        Gait,
+        Uom,
+        Pace;
+    }
     public eqDatabaseService(Context context, int version) {
-        super(context, DATABASE_NAME, null, version);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
@@ -45,6 +67,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EQ_SESSIONS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EQ_GPSPOSITIONS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EQ_GPSPOSITION_MASTER);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EQ_SETTINGS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EQ_CUSTOM_GAITS);
         onCreate(db);
@@ -67,18 +90,32 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         Log.i(eTAG, "createEQSessionsTable start");
         String CREATE_TABLE_EQ_SESSIONS = "CREATE TABLE " +
                 TABLE_EQ_SESSIONS + "("
-                + "session_name" + " TEXT PRIMARY KEY,"
+                + "session_name" + " TEXT,"
+                + "session_element_number" + " INTEGER,"
                 + "session_gait" + " TEXT,"
                 + "session_time" + " INTEGER" + ")";
 
         db.execSQL(CREATE_TABLE_EQ_SESSIONS);
 
     }
+
+    private void createEQGPSPositionsMaster(SQLiteDatabase db) {
+        Log.i(eTAG, "createEQGPSPositionsMaster start");
+        String CREATE_TABLE_EQ_GPSPOSITIONS = "CREATE TABLE " +
+                TABLE_EQ_GPSPOSITION_MASTER + "("
+                + "gps_session_id" + " INTEGER PRIMARY KEY,"
+                + "gps_session_name" + " TEXT PRIMARY KEY,"
+                + "gps_date_created" + " DATETIME)";
+
+        db.execSQL(CREATE_TABLE_EQ_GPSPOSITIONS);
+        ;
+    }
     private void createEQGPSPositionsTable(SQLiteDatabase db) {
         Log.i(eTAG, "createEQGPSPositionsTable start");
         String CREATE_TABLE_EQ_GPSPOSITIONS = "CREATE TABLE " +
                 TABLE_EQ_GPSPOSITIONS + "("
-                + "gps_session_id" + " TEXT PRIMARY KEY,"
+                + "gps_session_id" + " INTEGER PRIMARY KEY,"
+                + "gps_row_num" + " INTEGER,"
                 + "gps_lat" + " TEXT,"
                 + "gps_lon" + " TEXT,"
                 + "gps_avgSpeed" + " INTEGER,"
@@ -199,13 +236,225 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
     }
     //endregion
-    //region public functions
+
     public void deleteEQDatabase() {
 
 
         Log.i(eTAG, "eqDatabaseService deleteEQDatabase");
     }
 
+    // region public functions GPS
+
+    public void insertCurrentGPSData(String planName,ArrayList<eqGPSPositions_dt> allPoints) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        try {
+
+            db.beginTransaction();
+
+            // set up a master row to indentify the GPS data
+            Integer sessionId = insertCurrentGPSMaster(planName);
+            Integer rowNumber = 0;
+
+            // now process all the gps dat  into the DB table
+            for (eqGPSPositions_dt gpsDatum : allPoints) {
+                ContentValues values = new ContentValues();
+
+                values.put("gps_session_id",sessionId);
+                values.put("gps_row_num",rowNumber);
+                values.put("gps_lat",gpsDatum.get_lat());
+                values.put("gps_lon",gpsDatum.get_lon());
+                values.put("gps_avgSpeed",gpsDatum.getAvgSpeed());
+                values.put("gps_gpsSpeed",gpsDatum.getGpsSpeed());
+                values.put("gps_spdCount",gpsDatum.getSpdCount());
+                values.put("gps_positionDate",gpsDatum.getPositionDate());
+                values.put( "gps_bearing",gpsDatum.getBearing());
+
+                db.insert(TABLE_EQ_GPSPOSITIONS, null, values);
+
+                rowNumber += 1;
+
+            }
+        } catch (Exception ex) {
+            db.endTransaction();
+        } finally {
+            db.endTransaction();
+            db.setTransactionSuccessful();
+        }
+
+    }
+    public void deleteCurrentGPSData(String planName, String createDate) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Integer sessionID = getSessionID(planName,createDate);
+
+        db.delete(TABLE_EQ_SESSIONS,"gps_session_id=?",new String[] {sessionID.toString()});
+
+    }
+    public ArrayList<eqGPSPositions_dt> getGPSData(String planName, String createDate) {
+
+        Integer sessionID = getSessionID(planName,createDate);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String sql = "SELECT gps_Session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_row_num";
+
+        Cursor cursor = db.rawQuery(sql,null);
+        ArrayList<eqGPSPositions_dt> allPoints = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                eqGPSPositions_dt apoint = new eqGPSPositions_dt();
+
+                apoint.set_sessionID(cursor.getInt(GPS_COLUMNS.gps_session_id.ordinal()));
+                apoint.set_rowNumber(cursor.getInt(GPS_COLUMNS.gps_row_num.ordinal()));
+                apoint.set_lat(cursor.getString(GPS_COLUMNS.gps_lat.ordinal()));
+                apoint.set_lon(cursor.getString(GPS_COLUMNS.gps_lon.ordinal()));
+                apoint.setAvgSpeed(cursor.getInt(GPS_COLUMNS.gps_avgSpeed.ordinal()));
+                apoint.setGpsSpeed(cursor.getInt(GPS_COLUMNS.gps_gpsSpeed.ordinal()));
+                apoint.setSpdCount(cursor.getInt(GPS_COLUMNS.gps_spdCount.ordinal()));
+                apoint.setPositionDate(cursor.getString(GPS_COLUMNS.gps_positionDate.ordinal()));
+                apoint.setBearing(cursor.getInt(GPS_COLUMNS.gps_bearing.ordinal()));
+
+                allPoints.add(apoint);
+
+            } while (cursor.moveToNext());
+        }
+
+        return allPoints;
+    }
+    // private functions used by the public methods
+    private Integer insertCurrentGPSMaster(String PlanName) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String currentDateandTime = sdf.format(new Date());
+
+        Integer nextID = getNextSessionID();
+
+        ContentValues values = new ContentValues();
+
+        values.put("gps_session_name",PlanName);
+        values.put("gps_session_id",nextID);
+        values.put("gps_date_created",currentDateandTime);
+
+        db.insert(TABLE_EQ_GPSPOSITION_MASTER, null, values);
+
+        return nextID;
+    }
+    private Integer getSessionID(String planName, String createDate) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String sql = "SELECT gps_Session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " WHERE gps_session_name = '" + planName + "' AND gps_date_created = '" + createDate + "'";
+        Integer sessionID = 0;
+
+        try{
+            Cursor cursor = db.rawQuery(sql,null);
+            if (cursor != null) {
+                sessionID = cursor.getInt(0);
+            }
+        } catch (Exception ex) {
+            sessionID = 1;
+        }
+
+        return sessionID;
+
+    }
+    private Integer getNextSessionID() {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String sql = "SELECT gps_Session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_Session_id DESC";
+        Integer nextID = 0;
+
+        try{
+            Cursor cursor = db.rawQuery(sql,null);
+            if (cursor != null) {
+                nextID = cursor.getInt(0) + 1;
+            }
+        } catch (Exception ex) {
+            nextID = 1;
+        }
+
+        return nextID;
+
+    }
+
+    //endregion
+    //region public functions Plans
+
+    public void insertCurrentPlanElement(eqSessions_dt plan) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("session_name",plan.get_planName());
+        values.put("session_element_number",plan.get_elementNumber());
+        values.put("session_gait",plan.get_gait());
+        values.put("session_time",plan.get_time());
+
+        db.insert(TABLE_EQ_SESSIONS, null, values);
+
+    }
+    public void deleteCurrentPlan(String planName) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_EQ_SESSIONS,"session_name=?",new String[] {planName});
+
+    }
+    public List<eqSessions_dt> getCurrentPlan(String planName) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT * FROM " + TABLE_EQ_SESSIONS + " WHERE session_name = '" + planName + "' ORDER BY session_element_number";
+
+        Cursor cursor = db.rawQuery(selectQuery,null);
+        List<eqSessions_dt> allElements = new ArrayList<>();
+
+        if (cursor.moveToFirst()) {
+            do {
+                eqSessions_dt element = new eqSessions_dt();
+                element.set_planName(cursor.getString(0));
+                element.set_elementNumber(cursor.getInt(1));
+                element.set_gait(cursor.getString(2));
+                element.set_time(cursor.getInt(3));
+
+                allElements.add(element);
+
+            } while (cursor.moveToNext());
+        }
+        return null;
+    }
+    public ArrayList<HashMap<String, Integer>> getPlanList(String planName) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT session_name, count(session_name) as numElements FROM " + TABLE_EQ_SESSIONS + " WHERE session_name = '" + planName + "' GROUP BY session_name";
+
+        Cursor cursor = db.rawQuery(selectQuery,null);
+
+        ArrayList<HashMap<String, Integer>> allPlans = new ArrayList<>();   // create a holder for all the plans
+
+        // process through the retrieved grouped data and prepare a list
+
+        if (cursor.moveToFirst()) {
+            do {
+                HashMap<String, Integer> planLine = new HashMap<>();    // create a holder for one line of plan data
+
+                planLine.put(cursor.getString(0), cursor.getInt(1));    // put the data to the holder
+
+                allPlans.add(planLine);                                 // add that dat a to the master array
+
+            } while (cursor.moveToNext());
+        }
+            return null;
+    }
+
+    //endregion
+    //region public functions Gaits
 
     public void insertCustomGait(eqCustomGaits_dt gait) {
 
@@ -238,7 +487,6 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         String sqlDelete = "DELETE FROM " + TABLE_EQ_CUSTOM_GAITS;
         db.execSQL(sqlDelete);
     }
-
     public List<eqCustomGaits_dt> getAllGaits() {
 
         SQLiteDatabase db = this.getReadableDatabase();
@@ -251,11 +499,11 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 eqCustomGaits_dt customGaits = new eqCustomGaits_dt();
-                customGaits.setName(cursor.getString(0));
-                customGaits.setCategory(cursor.getString(1));
-                customGaits.setGait(cursor.getString(2));
-                customGaits.setUom(cursor.getString(3));
-                customGaits.setPace(cursor.getInt(4));
+                customGaits.setName(cursor.getString(GAITS_COLUMNS.Name.ordinal()));
+                customGaits.setCategory(cursor.getString(GAITS_COLUMNS.Category.ordinal()));
+                customGaits.setGait(cursor.getString(GAITS_COLUMNS.Gait.ordinal()));
+                customGaits.setUom(cursor.getString(GAITS_COLUMNS.Uom.ordinal()));
+                customGaits.setPace(cursor.getInt(GAITS_COLUMNS.Pace.ordinal()));
 
                 allGaits.add(customGaits);
 
@@ -265,6 +513,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         return allGaits;
 
     }
+
     //endregion
 
 

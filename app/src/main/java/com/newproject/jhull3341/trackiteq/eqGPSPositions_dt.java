@@ -5,10 +5,23 @@ package com.newproject.jhull3341.trackiteq;
  */
 public class eqGPSPositions_dt {
 
+    public Integer get_sessionID() {
+        return _sessionID;
+    }
+    public void set_sessionID(Integer _sessionID) {
+        this._sessionID = _sessionID;
+    }
+
+    public Integer get_rowNumber() {
+        return _rowNumber;
+    }
+    public void set_rowNumber(Integer _rowNumber) {
+        this._rowNumber = _rowNumber;
+    }
+
     public String get_lat() {
         return _lat;
     }
-
     public void set_lat(String _lat) {
         this._lat = _lat;
     }
@@ -16,7 +29,6 @@ public class eqGPSPositions_dt {
     public String get_lon() {
         return _lon;
     }
-
     public void set_lon(String _lon) {
         this._lon = _lon;
     }
@@ -24,7 +36,6 @@ public class eqGPSPositions_dt {
     public int getAvgSpeed() {
         return avgSpeed;
     }
-
     public void setAvgSpeed(int avgSpeed) {
         this.avgSpeed = avgSpeed;
     }
@@ -32,7 +43,6 @@ public class eqGPSPositions_dt {
     public int getGpsSpeed() {
         return gpsSpeed;
     }
-
     public void setGpsSpeed(int gpsSpeed) {
         this.gpsSpeed = gpsSpeed;
     }
@@ -40,7 +50,6 @@ public class eqGPSPositions_dt {
     public int getSpdCount() {
         return spdCount;
     }
-
     public void setSpdCount(int spdCount) {
         this.spdCount = spdCount;
     }
@@ -48,7 +57,6 @@ public class eqGPSPositions_dt {
     public String getPositionDate() {
         return positionDate;
     }
-
     public void setPositionDate(String positionDate) {
         this.positionDate = positionDate;
     }
@@ -56,12 +64,12 @@ public class eqGPSPositions_dt {
     public int getBearing() {
         return bearing;
     }
-
     public void setBearing(int bearing) {
         this.bearing = bearing;
     }
 
-
+    private Integer _sessionID;
+    private Integer _rowNumber;
     private String _lat;
     private String _lon;
     private int avgSpeed;

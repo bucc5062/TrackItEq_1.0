@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     android:weightSum="1"
     tools:context="com.newproject.jhull3341.trackiteq.TrackItEqMainActivity">
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/my_secondaryToolbar"
         android:layout_width="fill_parent"
@@ -120,17 +121,12 @@
             android:clickable="true" />
 
     </GridLayout>
-    <ScrollView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/scroll"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:id="@+id/my_root">
-        </LinearLayout>
-    </ScrollView>
+
+    <ListView
+        android:id="@+id/lstMyGaits"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/grdEntry"  />
 </LinearLayout>
