@@ -229,54 +229,74 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
         }
     };
-    private Button.OnClickListener onClick_btnOpen = new OnClickListener() {
+    private final ThreadLocal<OnClickListener> onClick_btnOpen = new ThreadLocal<OnClickListener>() {
         @Override
-        public void onClick(View v) {
-
-            final Dialog dialog = new Dialog(context);
-            dialog.setContentView(R.layout.activity_track_it_eq_open_plan);
-            dialog.setTitle("Open Exercise Plan...");
-
-            Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancelOpen);
-            diaCancelButton.setOnClickListener(new OnClickListener() {
+        protected OnClickListener initialValue() {
+            return new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    dialog.dismiss();
-                }
-            });
 
-            // get a list of files from the local app plans
-            ListView lvPlan;
-            ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
-            if (FilesInFolder == null) {
-                Toast toast = new Toast(context);
-                toast.setGravity(Gravity.TOP,0,0);
-                toast.makeText(context,"No Files to open, Please create one!",Toast.LENGTH_LONG).show();
-                return;
-            }
-            lvPlan = (ListView)dialog.findViewById(R.id.lvPlans);
+                    final Dialog dialog = new Dialog(context);
+                    dialog.setContentView(R.layout.activity_track_it_eq_open_plan);
+                    dialog.setTitle("Open Exercise Plan...");
 
-            lvPlan.setAdapter(new ArrayAdapter<>(context,android.R.layout.simple_list_item_1,FilesInFolder));
+                    Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancelOpen);
+                    diaCancelButton.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
 
-            lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 
-                    String data=(String)parent.getItemAtPosition(position);
-                    ArrayList<String> planData = readFromFile(data);
-                    clearGrid();
-                    for (String row:planData)
-                    {
-                        String[] rowData = row.split(",");
-                        buildDisplayLine(false,rowData[0],rowData[1]);
+                    // get a list of files from the local app plans
+                    eqDatabaseService eqDB = new eqDatabaseService(context, 2);
+
+                    ArrayList<HashMap<String,String>> allPlans = eqDB.getPlanList();
+
+                    if (allPlans.isEmpty()) {
+                        Toast toast = new Toast(context);
+                        toast.setGravity(Gravity.TOP, 0, 0);
+                        Toast.makeText(context, "No Files to open, Please create one!", Toast.LENGTH_LONG).show();
+                        return;
                     }
 
-                    GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);
-                    grdEntry.setVisibility(VISIBLE);
-                    dialog.dismiss();
+                    ListView lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
 
+                    try {
+
+                        adapter = new SimpleAdapter(context, allPlans, R.layout.plans_columns,
+                                new String[] { "keyName", "keyENum" }, new int[] {
+                                R.id.txtPlanName, R.id.txtNumElements  });
+
+                        lvPlan.setAdapter(adapter);
+                    } catch (Exception e) {
+
+                    }
+                    //********************************************************
+
+
+
+                    lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+
+                            String data = (String) parent.getItemAtPosition(position);
+                            ArrayList<String> planData = readFromFile(data);
+                            clearGrid();
+                            for (String row : planData) {
+                                String[] rowData = row.split(",");
+                                buildDisplayLine(false, rowData[0], rowData[1]);
+                            }
+
+                            GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);
+                            grdEntry.setVisibility(VISIBLE);
+                            dialog.dismiss();
+
+                        }
+                    });
+                    dialog.show();
                 }
-            });
-            dialog.show();
+            };
         }
     };
     private Button.OnClickListener onClick_btnSave = new OnClickListener() {
@@ -370,7 +390,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             if (FilesInFolder == null) {
                 Toast toast = new Toast(context);
                 toast.setGravity(Gravity.TOP,0,0);
-                toast.makeText(context,"No Files to delete, Please create one!",Toast.LENGTH_LONG).show();
+                Toast.makeText(context,"No Files to delete, Please create one!",Toast.LENGTH_LONG).show();
                 return;
             }
             lvPlan = (ListView)dialog.findViewById(R.id.lvPlans);
@@ -551,7 +571,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         Button btnNew = (Button) findViewById(R.id.btnNew);
         btnNew.setOnClickListener(onClick_btnNew);
         Button btnOpen = (Button) findViewById(R.id.btnOpen);
-        btnOpen.setOnClickListener(onClick_btnOpen);
+        btnOpen.setOnClickListener(onClick_btnOpen.get());
         Button btnSave = (Button) findViewById(R.id.btnSave);
         btnSave.setOnClickListener(onClick_btnSave);
         Button btnDelete = (Button) findViewById(R.id.btnDelete);

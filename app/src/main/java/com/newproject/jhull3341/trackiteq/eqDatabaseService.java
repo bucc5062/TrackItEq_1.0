@@ -426,31 +426,35 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
             } while (cursor.moveToNext());
         }
-        return null;
+        return allElements;
     }
-    public ArrayList<HashMap<String, Integer>> getPlanList(String planName) {
+    public ArrayList<HashMap<String, String>> getPlanList() {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String selectQuery = "SELECT session_name, count(session_name) as numElements FROM " + TABLE_EQ_SESSIONS + " WHERE session_name = '" + planName + "' GROUP BY session_name";
+        String selectQuery = "SELECT session_name, count(session_name) as numElements FROM " + TABLE_EQ_SESSIONS + " GROUP BY session_name";
 
         Cursor cursor = db.rawQuery(selectQuery,null);
 
-        ArrayList<HashMap<String, Integer>> allPlans = new ArrayList<>();   // create a holder for all the plans
+        ArrayList<HashMap<String, String>> allPlans = new ArrayList<>();   // create a holder for all the plans
 
         // process through the retrieved grouped data and prepare a list
-
+        HashMap<String, String> planLine;
         if (cursor.moveToFirst()) {
             do {
-                HashMap<String, Integer> planLine = new HashMap<>();    // create a holder for one line of plan data
 
-                planLine.put(cursor.getString(0), cursor.getInt(1));    // put the data to the holder
+                planLine = new HashMap<String, String>();               // create a holder for a row
+                planLine.put("keyName",cursor.getString(0));                  // put the col data in
+                planLine.put("keyENum", Integer.toString(cursor.getInt(1)));      // put the col data in
+
+                allPlans.add(planLine);                                   // add the row to the list
 
                 allPlans.add(planLine);                                 // add that dat a to the master array
 
+
             } while (cursor.moveToNext());
         }
-            return null;
+            return allPlans;
     }
 
     //endregion
