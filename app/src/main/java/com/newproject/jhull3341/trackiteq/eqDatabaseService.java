@@ -405,14 +405,14 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         db.delete(TABLE_EQ_SESSIONS,"session_name=?",new String[] {planName});
 
     }
-    public List<eqSessions_dt> getCurrentPlan(String planName) {
+    public ArrayList<eqSessions_dt> getCurrentPlan(String planName) {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
         String selectQuery = "SELECT * FROM " + TABLE_EQ_SESSIONS + " WHERE session_name = '" + planName + "' ORDER BY session_element_number";
 
         Cursor cursor = db.rawQuery(selectQuery,null);
-        List<eqSessions_dt> allElements = new ArrayList<>();
+        ArrayList<eqSessions_dt> allElements = new ArrayList<>();
 
         if (cursor.moveToFirst()) {
             do {
@@ -448,9 +448,6 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 planLine.put("keyENum", Integer.toString(cursor.getInt(1)));      // put the col data in
 
                 allPlans.add(planLine);                                   // add the row to the list
-
-                allPlans.add(planLine);                                 // add that dat a to the master array
-
 
             } while (cursor.moveToNext());
         }

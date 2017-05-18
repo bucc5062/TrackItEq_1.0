@@ -95,7 +95,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                     R.id.txtdisplayGait, R.id.txtdisplayTime  });
             lstGaits.setAdapter(adapter);
         } catch (Exception e) {
-
+            Log.i(eTAG, e.getMessage());
         }
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -250,7 +250,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
 
                     // get a list of files from the local app plans
-                    eqDatabaseService eqDB = new eqDatabaseService(context, 2);
+                    final eqDatabaseService eqDB = new eqDatabaseService(context, 2);
 
                     ArrayList<HashMap<String,String>> allPlans = eqDB.getPlanList();
 
@@ -265,13 +265,13 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
                     try {
 
-                        adapter = new SimpleAdapter(context, allPlans, R.layout.plans_columns,
+                        SimpleAdapter PlansAdapter = new SimpleAdapter(context, allPlans, R.layout.plans_columns,
                                 new String[] { "keyName", "keyENum" }, new int[] {
                                 R.id.txtPlanName, R.id.txtNumElements  });
 
-                        lvPlan.setAdapter(adapter);
+                        lvPlan.setAdapter(PlansAdapter);
                     } catch (Exception e) {
-
+                        Log.i(eTAG, e.getStackTrace().toString());
                     }
                     //********************************************************
 
@@ -280,17 +280,23 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                     lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 
-                            String data = (String) parent.getItemAtPosition(position);
-                            ArrayList<String> planData = readFromFile(data);
+                            TextView txtplan = (TextView) v.findViewById(R.id.txtPlanName);
+                            String planName = txtplan.getText().toString();
+
+                            List<eqSessions_dt> myPlan = eqDB.getCurrentPlan(planName);
+
                             clearGrid();
-                            for (String row : planData) {
-                                String[] rowData = row.split(",");
-                                buildDisplayLine(false, rowData[0], rowData[1]);
+
+                            for (eqSessions_dt row : myPlan) {
+
+                                buildDisplayLine(false, row.get_gait(),Integer.toString(row.get_time()));
                             }
 
-                            GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);
-                            grdEntry.setVisibility(VISIBLE);
+
+                            ((BaseAdapter)(adapter)).notifyDataSetChanged();
+
                             dialog.dismiss();
+
 
                         }
                     });
@@ -321,7 +327,6 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
-                    String fileData = "";
                     EditText txtplanName = (EditText) dialog.findViewById(R.id.txtPlanName);
                     String planName = txtplanName.getText().toString();
 
@@ -385,25 +390,38 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             });
 
             // get a list of files from the local app plans
-            ListView lvPlan;
-            ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
-            if (FilesInFolder == null) {
+            final eqDatabaseService eqDB = new eqDatabaseService(context, 2);
+
+            ArrayList<HashMap<String,String>> allPlans = eqDB.getPlanList();
+
+            if (allPlans.isEmpty()) {
                 Toast toast = new Toast(context);
-                toast.setGravity(Gravity.TOP,0,0);
-                Toast.makeText(context,"No Files to delete, Please create one!",Toast.LENGTH_LONG).show();
+                toast.setGravity(Gravity.TOP, 0, 0);
+                Toast.makeText(context, "No Files to Delete, Please create one!", Toast.LENGTH_LONG).show();
                 return;
             }
-            lvPlan = (ListView)dialog.findViewById(R.id.lvPlans);
 
-            lvPlan.setAdapter(new ArrayAdapter<>(context,android.R.layout.simple_list_item_1,FilesInFolder));
+            ListView lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
+
+            try {
+
+                SimpleAdapter PlansAdapter = new SimpleAdapter(context, allPlans, R.layout.plans_columns,
+                        new String[] { "keyName", "keyENum" }, new int[] {
+                        R.id.txtPlanName, R.id.txtNumElements  });
+
+                lvPlan.setAdapter(PlansAdapter);
+            } catch (Exception e) {
+                Log.i(eTAG, e.getStackTrace().toString());
+            }
+            //********************************************************
 
             lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 
-                    String data=(String)parent.getItemAtPosition(position);
+                    TextView txtplan = (TextView) v.findViewById(R.id.txtPlanName);
+                    String planName = txtplan.getText().toString();
 
-                    File dFile = new File(getString(R.string.local_data_path),data);
-                    Boolean deleted = dFile.delete();
+                    eqDB.deleteCurrentPlan(planName);
 
                     dialog.dismiss();
 
@@ -424,7 +442,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             TextView txtTime = (TextView) findViewById(R.id.txtSelected);
             String tmeResult = txtTime.getText().toString();
 
-            buildDisplayLine(false,gtResult,tmeResult);
+            buildDisplayLine(true,gtResult,tmeResult);
 
             txtTime.setText("");
             spinner.requestFocus();
@@ -447,14 +465,16 @@ public class TrackItEqMainActivity extends AppCompatActivity {
     /* ----------------------------------------------------------------------------- */
     //region PrivateFunctions
     @TargetApi(Build.VERSION_CODES.M)
-    private void buildDisplayLine(boolean isStart, String gait, String time) {
+    private void buildDisplayLine(boolean isNew, String gait, String time) {
 
         HashMap<String, String> map2 = new HashMap<String, String>();
         map2.put("keyGait",gait);                  // put the col data in
         map2.put("keyTime", time);      // put the col data in
         mylist.add(map2);
 
-        ((BaseAdapter)(adapter)).notifyDataSetChanged();
+        if (isNew) {
+            ((BaseAdapter) (adapter)).notifyDataSetChanged();
+        }
 
     }
     private int toPixels(int dp) {

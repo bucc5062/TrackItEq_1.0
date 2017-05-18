@@ -30,6 +30,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,7 +54,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -68,6 +71,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
     private static final String eTAG = "Exception";
     private ArrayList<String> currentPlan;
+    private ArrayList<eqSessions_dt> currentPlan1;
     private ArrayList<String>  currentGPSPositions;
     private long preTime = 5;
     private long planTime = 0;   // stored as secs
@@ -108,6 +112,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private final static String SAVE_TOTAL_TIME = "totalTime";
     private final static String SAVE_LEG_TIME = "legTime";
     private final static String SAVE_CURRENT_PLAN = "currentPlan";
+    private final static String SAVE_CURRENT_PLAN1 = "currentPlan1";
     private final static String SAVE_OPEN_SESSION = "OpenSession";
     private final static String SAVE_LEG_NUMBER = "legNumber";
     private final static String SAVE_LEG_GAIT = "legGait";
@@ -289,6 +294,13 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         outState.putLong(SAVE_LEG_TIME, legTime);
         outState.putBoolean(SAVE_OPEN_SESSION, openSession);
         outState.putStringArrayList(SAVE_CURRENT_PLAN, currentPlan);
+        try {
+            outState.putParcelableArrayList(SAVE_CURRENT_PLAN1,new ArrayList<eqSessions_dt>(currentPlan1));
+
+        } catch (Exception ex) {
+            currentPlan1 = new ArrayList<>();
+            outState.putParcelableArrayList(SAVE_CURRENT_PLAN1,new ArrayList<eqSessions_dt>(currentPlan1));
+        }
         outState.putBoolean(SAVE_TIMER_RUNNING, timerRunning);
         outState.putLong(SAVE_PRE_TIME, preTime);
         outState.putLong(SAVE_TOTAL_SPEED,totalSpeed);
@@ -307,6 +319,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         legTime = savedInstanceState.getLong(SAVE_LEG_TIME);
         openSession = savedInstanceState.getBoolean(SAVE_OPEN_SESSION);
         currentPlan = savedInstanceState.getStringArrayList(SAVE_CURRENT_PLAN);
+        currentPlan1 = savedInstanceState.getParcelableArrayList(SAVE_CURRENT_PLAN1);
 
     }
 
@@ -328,7 +341,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             // this will begin the actual running of the plan.  It kicks off the timer
             // which also kicks off the gps location listener
 
-            if (currentPlan.size() != 0) {
+            if (currentPlan1.size() != 0) {
                 setActionButtons(getString(R.string.startButtonPushed));  // reset back to just the play if we stopped the plan
                 startLocationUpdates();
                 currentGPSPositions.clear();
@@ -464,28 +477,44 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         });
 
         // get a list of files from the local app plans
-        ListView lvPlan;
-        ArrayList<String> FilesInFolder = GetFiles(getString(R.string.local_data_path));
-        if (FilesInFolder == null) {
-            Toast toast = new Toast(this);
-            toast.setGravity(Gravity.TOP,0,0);
-            toast.makeText(this,"No Files to open, Please create one!",Toast.LENGTH_LONG).show();
+        final eqDatabaseService eqDB = new eqDatabaseService(context, 2);
+
+        ArrayList<HashMap<String,String>> allPlans = eqDB.getPlanList();
+
+        if (allPlans.isEmpty()) {
+            Toast toast = new Toast(context);
+            toast.setGravity(Gravity.TOP, 0, 0);
+            Toast.makeText(context, "No Files to open, Please create one!", Toast.LENGTH_LONG).show();
             return;
         }
 
-        lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
-        lvPlan.setAdapter(new customArrayAdapter<>(context, android.R.layout.simple_list_item_1, FilesInFolder));
+        ListView lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
+
+        try {
+
+            SimpleAdapter PlansAdapter = new SimpleAdapter(context, allPlans, R.layout.plans_columns,
+                    new String[] { "keyName", "keyENum" }, new int[] {
+                    R.id.txtPlanName, R.id.txtNumElements  });
+
+            lvPlan.setAdapter(PlansAdapter);
+        } catch (Exception e) {
+            Log.i(eTAG, e.getStackTrace().toString());
+        }
+        //********************************************************
+
         lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 
-                resetCurrentPlanValues();
+                resetCurrentPlanValues();   // resets the interal and external time displays
 
-                // get the selected plan to execute
-                String data = (String) parent.getItemAtPosition(position);
-                currentPlan = readFromFile(data);   // set the plan for reading/processing
+                // get the specific plan
+                TextView txtplan = (TextView) v.findViewById(R.id.txtPlanName);
+                String planName = txtplan.getText().toString();
 
-                //get the total plan time for initial display and display it along with control
-                // buttons
+                currentPlan1 = eqDB.getCurrentPlan(planName);
+
+                //get the total plan time for initial display and display it along with control buttons
+
                 planTime = getTotalPlanTime();
 
                 setCurrentLeg();
@@ -701,19 +730,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         //get the total plan time for initial display and display it along with control
         // buttons
 
-        String[] legData = currentPlan.get(legNumber).split(",");
+        eqSessions_dt legData = currentPlan1.get(legNumber);
 
         avgSpeed = 0;
         totalSpeed = 0;
         spdCount = 1;
 
-        legTime = Integer.parseInt(legData[1]) * 60;    //convert to seconds
-        legGait = legData[0];
+        legTime = legData.get_time() * 60;    //convert to seconds
+        legGait = legData.get_gait();
         setLegColor();
         legNumber++;   // increase for the next change
         try {
-            String[] nextLegData = currentPlan.get(legNumber).split(",");
-            nextGait = nextLegData[0];
+            eqSessions_dt nextLegData = currentPlan1.get(legNumber);
+            nextGait = nextLegData.get_gait();
         } catch (Exception ex) {
             nextGait = "Finish";
         }
@@ -794,10 +823,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         // read through the arraylist pulled from the plan and calculate the total time of the plan
 
         long TotalSecs = 0;
-        for (String element : currentPlan) {
-            String[] elements = element.split(",");
-            Log.i(eTAG, "name: " + elements[0] + " Time: " + elements[1] +  "totalsecs: " + TotalSecs);
-            TotalSecs += (Integer.parseInt(elements[1])) * 60;  // convert to seconds
+        for (eqSessions_dt element : currentPlan1) {
+
+            Log.i(eTAG, "name: " + element.get_gait() + " Time: " + element.get_time() +  "totalsecs: " + TotalSecs);
+            TotalSecs += (element.get_time()) * 60;  // convert to seconds
         }
 
         return TotalSecs;
@@ -915,7 +944,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     }
     private void processTimeZeroLegTime() {
 
-        if (legNumber >= currentPlan.size()) {
+        if (legNumber >= currentPlan1.size()) {
             // we are done with the program, end it the timer.
             timerHandler.removeCallbacks(timerRunnable);
             timerHandler = null;
