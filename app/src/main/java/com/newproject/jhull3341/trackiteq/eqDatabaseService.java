@@ -268,7 +268,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 values.put("gps_avgSpeed",gpsDatum.getAvgSpeed());
                 values.put("gps_gpsSpeed",gpsDatum.getGpsSpeed());
                 values.put("gps_spdCount",gpsDatum.getSpdCount());
-                values.put("gps_positionDate",gpsDatum.getPositionDate());
+                values.put("gps_positionDate",gpsDatum.getPositionDate().toString());
                 values.put( "gps_bearing",gpsDatum.getBearing());
 
                 db.insert(TABLE_EQ_GPSPOSITIONS, null, values);
@@ -309,12 +309,12 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
                 apoint.set_sessionID(cursor.getInt(GPS_COLUMNS.gps_session_id.ordinal()));
                 apoint.set_rowNumber(cursor.getInt(GPS_COLUMNS.gps_row_num.ordinal()));
-                apoint.set_lat(cursor.getString(GPS_COLUMNS.gps_lat.ordinal()));
-                apoint.set_lon(cursor.getString(GPS_COLUMNS.gps_lon.ordinal()));
+                apoint.set_lat(cursor.getDouble(GPS_COLUMNS.gps_lat.ordinal()));
+                apoint.set_lon(cursor.getDouble(GPS_COLUMNS.gps_lon.ordinal()));
                 apoint.setAvgSpeed(cursor.getInt(GPS_COLUMNS.gps_avgSpeed.ordinal()));
                 apoint.setGpsSpeed(cursor.getInt(GPS_COLUMNS.gps_gpsSpeed.ordinal()));
                 apoint.setSpdCount(cursor.getInt(GPS_COLUMNS.gps_spdCount.ordinal()));
-                apoint.setPositionDate(cursor.getString(GPS_COLUMNS.gps_positionDate.ordinal()));
+                //apoint.setPositionDate(cursor.getString(GPS_COLUMNS.gps_positionDate.ordinal()));
                 apoint.setBearing(cursor.getInt(GPS_COLUMNS.gps_bearing.ordinal()));
 
                 allPoints.add(apoint);

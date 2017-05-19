@@ -1,10 +1,69 @@
 package com.newproject.jhull3341.trackiteq;
 
+import android.os.Parcelable;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Date;
+
 /**
  * Created by jhull3341 on 3/30/2016.
  */
-public class eqGPSPositions_dt {
+public class eqGPSPositions_dt implements Parcelable {
 
+    public eqGPSPositions_dt() {
+
+    }
+
+    protected eqGPSPositions_dt(android.os.Parcel in) {
+        _sessionID = in.readInt();
+        _rowNumber = in.readInt();
+        _lat = in.readDouble();
+        _lon = in.readDouble();
+        avgSpeed = in.readLong();
+        gpsSpeed = in.readLong();
+        spdCount = in.readLong();
+        positionDate = (Date) in.readSerializable();
+        bearing = in.readFloat();
+    }
+
+    public static final Creator<eqGPSPositions_dt> CREATOR = new Creator<eqGPSPositions_dt>() {
+        @Override
+        public eqGPSPositions_dt createFromParcel(android.os.Parcel in) {
+            return new eqGPSPositions_dt(in);
+        }
+
+        @Override
+        public eqGPSPositions_dt[] newArray(int size) {
+            return new eqGPSPositions_dt[size];
+        }
+    };
+    @Override
+    public int describeContents() { return 0; }
+
+    @Override
+    public void writeToParcel(android.os.Parcel dest, int flags) {
+
+        dest.writeInt(_sessionID);
+        dest.writeInt(_rowNumber);
+        dest.writeDouble(_lat);
+        dest.writeDouble(_lon);
+        dest.writeLong(avgSpeed);
+        dest.writeLong(gpsSpeed);
+        dest.writeLong(spdCount);
+        dest.writeSerializable(positionDate);
+        dest.writeFloat(bearing);
+    }
+    public static String beanToString(Object object) throws IOException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        StringWriter stringEmp = new StringWriter();
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        objectMapper.writeValue(stringEmp, object);
+        return stringEmp.toString();
+    }
+    //*********************************************************************************
     public Integer get_sessionID() {
         return _sessionID;
     }
@@ -19,63 +78,63 @@ public class eqGPSPositions_dt {
         this._rowNumber = _rowNumber;
     }
 
-    public String get_lat() {
+    public double get_lat() {
         return _lat;
     }
-    public void set_lat(String _lat) {
+    public void set_lat(double _lat) {
         this._lat = _lat;
     }
 
-    public String get_lon() {
+    public double get_lon() {
         return _lon;
     }
-    public void set_lon(String _lon) {
+    public void set_lon(double _lon) {
         this._lon = _lon;
     }
 
-    public int getAvgSpeed() {
+    public long getAvgSpeed() {
         return avgSpeed;
     }
-    public void setAvgSpeed(int avgSpeed) {
+    public void setAvgSpeed(long avgSpeed) {
         this.avgSpeed = avgSpeed;
     }
 
-    public int getGpsSpeed() {
+    public long getGpsSpeed() {
         return gpsSpeed;
     }
-    public void setGpsSpeed(int gpsSpeed) {
+    public void setGpsSpeed(long gpsSpeed) {
         this.gpsSpeed = gpsSpeed;
     }
 
-    public int getSpdCount() {
+    public long getSpdCount() {
         return spdCount;
     }
-    public void setSpdCount(int spdCount) {
+    public void setSpdCount(long spdCount) {
         this.spdCount = spdCount;
     }
 
-    public String getPositionDate() {
+    public Date getPositionDate() {
         return positionDate;
     }
-    public void setPositionDate(String positionDate) {
+    public void setPositionDate(Date positionDate) {
         this.positionDate = positionDate;
     }
 
-    public int getBearing() {
+    public float getBearing() {
         return bearing;
     }
-    public void setBearing(int bearing) {
+    public void setBearing(float bearing) {
         this.bearing = bearing;
     }
 
     private Integer _sessionID;
     private Integer _rowNumber;
-    private String _lat;
-    private String _lon;
-    private int avgSpeed;
-    private int gpsSpeed;
-    private int spdCount;
-    private String positionDate;
-    private int bearing;
+    private double _lat;
+    private double _lon;
+    private long avgSpeed;
+    private long gpsSpeed;
+    private long spdCount;
+    private Date positionDate;
+    private float bearing;
 
 }

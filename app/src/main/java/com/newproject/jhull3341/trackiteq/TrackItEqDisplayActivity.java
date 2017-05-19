@@ -72,7 +72,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private static final String eTAG = "Exception";
     private ArrayList<String> currentPlan;
     private ArrayList<eqSessions_dt> currentPlan1;
-    private ArrayList<String>  currentGPSPositions;
+    private ArrayList<eqGPSPositions_dt>  currentGPSPositions;
+    private String currPlanName = "";
     private long preTime = 5;
     private long planTime = 0;   // stored as secs
     private long legTime = 0;    // time remaining in a leg, stored in secs
@@ -512,6 +513,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 String planName = txtplan.getText().toString();
 
                 currentPlan1 = eqDB.getCurrentPlan(planName);
+                currPlanName = planName;
 
                 //get the total plan time for initial display and display it along with control buttons
 
@@ -609,10 +611,24 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         String formatted = format.format(date);
         float bearing = location.getBearing();
 
-        String saveLoc = lat + "," + lon + "," + avgSpeed + "," + gpsSpeed + "," + spdCount + "," + formatted + "," + bearing;
-        Log.i(eTAG,"saveloc= " + saveLoc);
-        if (saveLoc != null) {
-            currentGPSPositions.add(saveLoc);
+        eqGPSPositions_dt aGPSPoint = new eqGPSPositions_dt();
+
+        aGPSPoint.set_lat(lat);
+        aGPSPoint.set_lon(lon);
+        aGPSPoint.setAvgSpeed(avgSpeed);
+        aGPSPoint.setGpsSpeed(gpsSpeed);
+        aGPSPoint.setSpdCount(spdCount);
+        aGPSPoint.setPositionDate(date);
+        aGPSPoint.setBearing(bearing);
+
+        try {
+            Log.i(eTAG,"saveloc= " + eqGPSPositions_dt.beanToString(aGPSPoint));
+        } catch (Exception ex) {
+            Log.i(eTAG,"ex: " + ex.getStackTrace().toString());
+        }
+
+        if (aGPSPoint != null) {
+            currentGPSPositions.add(aGPSPoint);
         }
         // we will write this data out to some storage area for later retrieval so it can be
         // user to review the run.
@@ -1019,16 +1035,15 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     }
     private void writeOutTheGPSLocations() {
 
-        String fileData = "";
-        Date date = new Date();
-        String currDate = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(date);
-        String fileName = "gpsdata-" + currDate + ".gps";
+        eqDatabaseService eqDB = new eqDatabaseService(context, 2);
 
-        for (String gps : currentGPSPositions) {
-            fileData += gps + "\n";
+        try {
+            Log.i(eTAG,"writeOutTheGPSLocations");
+            eqDB.insertCurrentGPSData(currPlanName,currentGPSPositions);
+        } catch (Exception ex) {
+            Log.i(eTAG,"writeOutTheGPSLocations error: " + ex.getStackTrace().toString());
         }
-        Log.i(eTAG,"writeOutTheGPSLocations: " + fileName);
-        writeToFile(fileName, fileData);
+
     }
     public void writeToFile(String fName, String allData) {
 
