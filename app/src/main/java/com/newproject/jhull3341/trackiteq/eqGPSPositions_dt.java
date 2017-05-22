@@ -24,7 +24,7 @@ public class eqGPSPositions_dt implements Parcelable {
         avgSpeed = in.readLong();
         gpsSpeed = in.readLong();
         spdCount = in.readLong();
-        positionDate = (Date) in.readSerializable();
+        positionDate = in.readString();
         bearing = in.readFloat();
     }
 
@@ -52,7 +52,7 @@ public class eqGPSPositions_dt implements Parcelable {
         dest.writeLong(avgSpeed);
         dest.writeLong(gpsSpeed);
         dest.writeLong(spdCount);
-        dest.writeSerializable(positionDate);
+        dest.writeString(positionDate);
         dest.writeFloat(bearing);
     }
     public static String beanToString(Object object) throws IOException {
@@ -113,10 +113,10 @@ public class eqGPSPositions_dt implements Parcelable {
         this.spdCount = spdCount;
     }
 
-    public Date getPositionDate() {
+    public String getPositionDate() {
         return positionDate;
     }
-    public void setPositionDate(Date positionDate) {
+    public void setPositionDate(String positionDate) {
         this.positionDate = positionDate;
     }
 
@@ -134,7 +134,8 @@ public class eqGPSPositions_dt implements Parcelable {
     private long avgSpeed;
     private long gpsSpeed;
     private long spdCount;
-    private Date positionDate;
+    private String positionDate;
     private float bearing;
 
 }
+

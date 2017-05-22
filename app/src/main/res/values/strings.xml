@@ -21,6 +21,8 @@
     <string name="activityMainTitle">Track Conditioning v1.05</string>
     <string name="activityManagePlans">Manage Plans</string>
     <string name="activityManageGaits">Manage Gaits</string>
+    <string name="activityGPSActions">GPS Actions</string>
+
     <string name="btnDelTitle">Del</string>
     <string name="dlgSaveTitle">Save Exercise Plan...</string>
     <string name="dlgGaitTitle">Manage Gaits...</string>

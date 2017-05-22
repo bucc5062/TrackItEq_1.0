@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_gpstoolbar"
+        android:layout_width="fill_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="#236dc1"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="66dp"
+        android:layout_column="4"
+        android:layout_gravity="center_vertical"
+        android:layout_row="0"
+        android:background="#d5d6d6"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        android:layout_below="@+id/my_gpstoolbar"
+        android:layout_alignParentStart="true"
+        android:id="@+id/linearLayout2">
+
+        <ImageButton
+            android:id="@+id/btnOpenGPSGo"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:src="@mipmap/ic_openplan" />
+
+        <LinearLayout
+            android:id="@+id/lyActionButtons"
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.09"
+            android:gravity="fill_horizontal|center_horizontal"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnStartPlan1"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="3dp"
+                android:src="@mipmap/ic_runplan" />
+
+            <ImageButton
+                android:id="@+id/btnPausePlan1"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:src="@mipmap/ic_pauseplan" />
+
+            <ImageButton
+                android:id="@+id/btnStopPlan1"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="0dp"
+                android:src="@mipmap/ic_stopplan" />
+
+            <ImageButton
+                android:id="@+id/btnPaceVolume1"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="0dp"
+                android:src="@mipmap/ic_vol_on" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnManagePlans1"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="5dp"
+            android:contentDescription="@string/set_volume"
+            android:src="@mipmap/ic_createplan" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/lstGPSPoints"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/linearLayout2"
+        android:orientation="vertical"></LinearLayout>
+</RelativeLayout>

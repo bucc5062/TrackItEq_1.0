@@ -241,8 +241,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 break;
             case R.id.action_settings:
                 break;
-            case R.id.action_gaits:
-                break;
+            case R.id.GPS_Actions:
+                // this send the app over to the plan management tool activity
+                Intent buildIntent = new Intent(context, TrackItEqGPSActivity.class);
+                startActivity(buildIntent);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -606,9 +608,10 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         double lon = location.getLongitude();
         //long currTime = location.getTime();
         // See notes below
-        DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        DateFormat format = new SimpleDateFormat("yyyyMMdd_HHmmss");
         Date date = new Date(location.getTime());
         String formatted = format.format(date);
+
         float bearing = location.getBearing();
 
         eqGPSPositions_dt aGPSPoint = new eqGPSPositions_dt();
@@ -618,7 +621,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         aGPSPoint.setAvgSpeed(avgSpeed);
         aGPSPoint.setGpsSpeed(gpsSpeed);
         aGPSPoint.setSpdCount(spdCount);
-        aGPSPoint.setPositionDate(date);
+        aGPSPoint.setPositionDate(formatted);
         aGPSPoint.setBearing(bearing);
 
         try {

@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public class eqDatabaseService extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
     private static final String TABLE_EQ_SESSIONS = "eqSessions_dt";
     private static final String TABLE_EQ_GPSPOSITION_MASTER = "eqGPSPositionMst_dt";
     private static final String TABLE_EQ_GPSPOSITIONS = "eqGPSPositions_dt";
@@ -27,6 +28,11 @@ public class eqDatabaseService extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "EqConditioning_db";
     private static final String eTAG = "Exception";
 
+    private enum GPS_MASTER_COLUMNS {
+        gps_session_id,
+        gps_session_name,
+        gps_session_date
+    }
     private enum GPS_COLUMNS {
         gps_session_id,
         gps_row_num,
@@ -105,7 +111,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 TABLE_EQ_GPSPOSITION_MASTER + "("
                 + "gps_session_id" + " INTEGER PRIMARY KEY,"
                 + "gps_session_name" + " TEXT PRIMARY KEY,"
-                + "gps_date_created" + " DATETIME)";
+                + "gps_date_created" + " LONG)";
 
         db.execSQL(CREATE_TABLE_EQ_GPSPOSITIONS);
         ;
@@ -121,7 +127,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 + "gps_avgSpeed" + " INTEGER,"
                 + "gps_gpsSpeed" + " INTEGER,"
                 + "gps_spdCount" + " INTEGER,"
-                + "gps_positionDate" + " TEXT,"
+                + "gps_positionDate" + " LONG,"
                 + "gps_bearing" + " INTEGER" + ")";
 
         db.execSQL(CREATE_TABLE_EQ_GPSPOSITIONS);
@@ -268,7 +274,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 values.put("gps_avgSpeed",gpsDatum.getAvgSpeed());
                 values.put("gps_gpsSpeed",gpsDatum.getGpsSpeed());
                 values.put("gps_spdCount",gpsDatum.getSpdCount());
-                values.put("gps_positionDate",gpsDatum.getPositionDate().toString());
+                values.put("gps_positionDate",DateTextToLong(gpsDatum.getPositionDate()));
                 values.put( "gps_bearing",gpsDatum.getBearing());
 
                 db.insert(TABLE_EQ_GPSPOSITIONS, null, values);
@@ -311,10 +317,10 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 apoint.set_rowNumber(cursor.getInt(GPS_COLUMNS.gps_row_num.ordinal()));
                 apoint.set_lat(cursor.getDouble(GPS_COLUMNS.gps_lat.ordinal()));
                 apoint.set_lon(cursor.getDouble(GPS_COLUMNS.gps_lon.ordinal()));
-                apoint.setAvgSpeed(cursor.getInt(GPS_COLUMNS.gps_avgSpeed.ordinal()));
-                apoint.setGpsSpeed(cursor.getInt(GPS_COLUMNS.gps_gpsSpeed.ordinal()));
-                apoint.setSpdCount(cursor.getInt(GPS_COLUMNS.gps_spdCount.ordinal()));
-                //apoint.setPositionDate(cursor.getString(GPS_COLUMNS.gps_positionDate.ordinal()));
+                apoint.setAvgSpeed(cursor.getLong(GPS_COLUMNS.gps_avgSpeed.ordinal()));
+                apoint.setGpsSpeed(cursor.getLong(GPS_COLUMNS.gps_gpsSpeed.ordinal()));
+                apoint.setSpdCount(cursor.getLong(GPS_COLUMNS.gps_spdCount.ordinal()));
+                apoint.setPositionDate(DateLongToText(cursor.getLong(GPS_COLUMNS.gps_positionDate.ordinal())));
                 apoint.setBearing(cursor.getInt(GPS_COLUMNS.gps_bearing.ordinal()));
 
                 allPoints.add(apoint);
@@ -324,6 +330,32 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         return allPoints;
     }
+    public ArrayList<eqGPSDataMaster> getGPSList() {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT gps_session_id, gps_session_name, gps_date_created " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_date_created DESC";
+
+        Cursor cursor = db.rawQuery(selectQuery,null);
+
+        ArrayList<eqGPSDataMaster> allRuns = new ArrayList<>();   // create a holder for all the plans
+
+        // process through the retrieved grouped data and prepare a list
+        if (cursor.moveToFirst()) {
+            do {
+                eqGPSDataMaster aline = new eqGPSDataMaster();
+
+                aline.set_gps_session_id(cursor.getInt(GPS_MASTER_COLUMNS.gps_session_id.ordinal()));
+                aline.set_gps_session_name(cursor.getString(GPS_MASTER_COLUMNS.gps_session_name.ordinal()));
+                aline.set_gps_session_date(DateLongToText(cursor.getLong(GPS_MASTER_COLUMNS.gps_session_date.ordinal())));
+
+                allRuns.add(aline);                                   // add the row to the list
+
+            } while (cursor.moveToNext());
+        }
+        return allRuns;
+    }
+
     // private functions used by the public methods
     private Integer insertCurrentGPSMaster(String PlanName) {
 
@@ -338,7 +370,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         values.put("gps_session_name",PlanName);
         values.put("gps_session_id",nextID);
-        values.put("gps_date_created",currentDateandTime);
+        values.put("gps_date_created",DateTextToLong(currentDateandTime));
 
         db.insert(TABLE_EQ_GPSPOSITION_MASTER, null, values);
 
@@ -382,7 +414,27 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         return nextID;
 
     }
+    private String DateLongToText(long inVal) {
 
+        String dateString = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date(inVal));
+
+        return dateString;
+
+    }
+    private Long DateTextToLong(String inval) {
+
+        long dateLong = 0;
+
+        try {
+            dateLong = new SimpleDateFormat("yyyyMMdd_HHmmss").parse(inval).getTime();
+
+        } catch (ParseException Pex) {
+
+        }
+
+        return dateLong;
+
+    }
     //endregion
     //region public functions Plans
 
