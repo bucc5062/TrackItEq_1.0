@@ -19,9 +19,9 @@ import java.util.List;
  */
 public class eqDatabaseService extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 10;
     private static final String TABLE_EQ_SESSIONS = "eqSessions_dt";
-    private static final String TABLE_EQ_GPSPOSITION_MASTER = "eqGPSPositionMst_dt";
+    private static final String TABLE_EQ_GPSPOSITION_MASTER = "eqGPSPosition_Mst";
     private static final String TABLE_EQ_GPSPOSITIONS = "eqGPSPositions_dt";
     private static final String TABLE_EQ_SETTINGS = "eqSettings_dt";
     private static final String TABLE_EQ_CUSTOM_GAITS = "eqCustomGaits_dt";
@@ -60,6 +60,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         Log.i(eTAG, "eqDatabaseService onCreate");
         createEQSessionsTable(db);
+        createEQGPSPositionsMaster(db);
         createEQGPSPositionsTable(db);
         createEQSettingsTable(db);
         createEQCustomGaitsTable(db);
@@ -108,13 +109,19 @@ public class eqDatabaseService extends SQLiteOpenHelper {
     private void createEQGPSPositionsMaster(SQLiteDatabase db) {
         Log.i(eTAG, "createEQGPSPositionsMaster start");
         String CREATE_TABLE_EQ_GPSPOSITIONS = "CREATE TABLE " +
-                TABLE_EQ_GPSPOSITION_MASTER + "("
+                TABLE_EQ_GPSPOSITION_MASTER + " ("
                 + "gps_session_id" + " INTEGER PRIMARY KEY,"
-                + "gps_session_name" + " TEXT PRIMARY KEY,"
+                + "gps_session_name" + " TEXT,"
                 + "gps_date_created" + " LONG)";
 
-        db.execSQL(CREATE_TABLE_EQ_GPSPOSITIONS);
-        ;
+        try {
+            db.execSQL(CREATE_TABLE_EQ_GPSPOSITIONS);
+        } catch (Exception ex) {
+            Log.i(eTAG, ex.getStackTrace().toString());
+            Log.i(eTAG, "createEQGPSPositionsMaster error");
+        }
+
+
     }
     private void createEQGPSPositionsTable(SQLiteDatabase db) {
         Log.i(eTAG, "createEQGPSPositionsTable start");
@@ -333,10 +340,16 @@ public class eqDatabaseService extends SQLiteOpenHelper {
     public ArrayList<eqGPSDataMaster> getGPSList() {
 
         SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        String selectQuery = "SELECT * FROM " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_date_created DESC";
 
-        String selectQuery = "SELECT gps_session_id, gps_session_name, gps_date_created " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_date_created DESC";
+        try {
+             cursor = db.rawQuery(selectQuery,null);
+        } catch (Exception ex) {
+            Log.i(eTAG, "Ex: " + ex.getStackTrace().toString());
+            Log.i(eTAG, "eqDatabaseService error");
+        }
 
-        Cursor cursor = db.rawQuery(selectQuery,null);
 
         ArrayList<eqGPSDataMaster> allRuns = new ArrayList<>();   // create a holder for all the plans
 
