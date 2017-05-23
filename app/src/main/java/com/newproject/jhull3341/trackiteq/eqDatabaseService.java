@@ -292,8 +292,8 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         } catch (Exception ex) {
             db.endTransaction();
         } finally {
-            db.endTransaction();
             db.setTransactionSuccessful();
+            db.endTransaction();
         }
 
     }
@@ -312,7 +312,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String sql = "SELECT gps_Session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_row_num";
+        String sql = "SELECT * from " + TABLE_EQ_GPSPOSITIONS + " WHERE gps_session_id = " + sessionID.toString() + " ORDER BY gps_row_num";
 
         Cursor cursor = db.rawQuery(sql,null);
         ArrayList<eqGPSPositions_dt> allPoints = new ArrayList<>();
@@ -393,7 +393,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String sql = "SELECT gps_Session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " WHERE gps_session_name = '" + planName + "' AND gps_date_created = '" + createDate + "'";
+        String sql = "SELECT gps_session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " WHERE gps_session_name = '" + planName + "' AND gps_date_created = '" + createDate + "'";
         Integer sessionID = 0;
 
         try{
@@ -412,7 +412,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String sql = "SELECT gps_Session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_Session_id DESC";
+        String sql = "SELECT gps_session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_session_id DESC";
         Integer nextID = 0;
 
         try{

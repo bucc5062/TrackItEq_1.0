@@ -535,7 +535,9 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
                 setActionButtons(getString(R.string.stopButtonPushed));
                 //LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
                 LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (LocationListener) context);
-
+                if (!timerRunning) {  // if we had the timer running, we need to restart it to keep things going.
+                    Handler timerHandler = new Handler();
+                }
                 dialog.dismiss();
 
             }
