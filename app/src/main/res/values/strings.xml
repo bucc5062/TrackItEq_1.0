@@ -18,7 +18,7 @@
     <string name="btnCancel">Cancel</string>
     <string name="savePlanLabel">Enter name of plan</string>
     <string name="openTitle">Select from the list of saved plans</string>
-    <string name="activityMainTitle">Track Conditioning v1.05</string>
+    <string name="activityMainTitle">Track Conditioning v1.2</string>
     <string name="activityManagePlans">Manage Plans</string>
     <string name="activityManageGaits">Manage Gaits</string>
     <string name="activityGPSActions">GPS Actions</string>

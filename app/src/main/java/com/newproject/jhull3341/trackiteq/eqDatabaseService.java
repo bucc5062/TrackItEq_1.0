@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class eqDatabaseService extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 11;
     private static final String TABLE_EQ_SESSIONS = "eqSessions_dt";
     private static final String TABLE_EQ_GPSPOSITION_MASTER = "eqGPSPosition_Mst";
     private static final String TABLE_EQ_GPSPOSITIONS = "eqGPSPositions_dt";
@@ -127,7 +127,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         Log.i(eTAG, "createEQGPSPositionsTable start");
         String CREATE_TABLE_EQ_GPSPOSITIONS = "CREATE TABLE " +
                 TABLE_EQ_GPSPOSITIONS + "("
-                + "gps_session_id" + " INTEGER PRIMARY KEY,"
+                + "gps_session_id" + " INTEGER KEY,"
                 + "gps_row_num" + " INTEGER,"
                 + "gps_lat" + " TEXT,"
                 + "gps_lon" + " TEXT,"
@@ -399,6 +399,10 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         try{
             Cursor cursor = db.rawQuery(sql,null);
             if (cursor != null) {
+                cursor.moveToFirst();
+                Log.i(eTAG, "cursor(0): " + cursor.getInt(0));
+                Log.i(eTAG, "cursor(1): " + cursor.getInt(1));
+                Log.i(eTAG, "cursor(2): " + cursor.getInt(2));
                 sessionID = cursor.getInt(0);
             }
         } catch (Exception ex) {
@@ -412,13 +416,18 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String sql = "SELECT gps_session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_session_id DESC";
+        String sql = "SELECT * from " + TABLE_EQ_GPSPOSITION_MASTER + " ORDER BY gps_session_id DESC";
         Integer nextID = 0;
 
         try{
             Cursor cursor = db.rawQuery(sql,null);
             if (cursor != null) {
-                nextID = cursor.getInt(0) + 1;
+                cursor.moveToFirst();
+                Log.i(eTAG, "cursor(0): " + cursor.getInt(0));
+                Log.i(eTAG, "cursor(1): " + cursor.getInt(1));
+                Log.i(eTAG, "cursor(2): " + cursor.getInt(2));
+                nextID = cursor.getInt(0);
+                nextID += 1;
             }
         } catch (Exception ex) {
             nextID = 1;

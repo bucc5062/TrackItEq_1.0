@@ -337,6 +337,9 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                         Integer elementCount = 0;
                         eqDatabaseService eqDB = new eqDatabaseService(context, 2);
 
+                        String dbname = context.getDatabasePath("EqConditioning_db").getAbsolutePath();
+                        Log.i(eTAG,"dbPath=" + dbname);
+
                         for (HashMap<String, String> aRow : mylist) {
                             String gait = aRow.get("keyGait");
                             String time = aRow.get("keyTime");
