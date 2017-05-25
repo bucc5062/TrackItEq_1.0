@@ -393,16 +393,15 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String sql = "SELECT gps_session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " WHERE gps_session_name = '" + planName + "' AND gps_date_created = '" + createDate + "'";
+        Long lDate = DateTextToLong(createDate);
+
+        String sql = "SELECT gps_session_id from " + TABLE_EQ_GPSPOSITION_MASTER + " WHERE gps_session_name = '" + planName + "' AND gps_date_created = " + lDate.toString() + "";
         Integer sessionID = 0;
 
         try{
             Cursor cursor = db.rawQuery(sql,null);
             if (cursor != null) {
                 cursor.moveToFirst();
-                Log.i(eTAG, "cursor(0): " + cursor.getInt(0));
-                Log.i(eTAG, "cursor(1): " + cursor.getInt(1));
-                Log.i(eTAG, "cursor(2): " + cursor.getInt(2));
                 sessionID = cursor.getInt(0);
             }
         } catch (Exception ex) {

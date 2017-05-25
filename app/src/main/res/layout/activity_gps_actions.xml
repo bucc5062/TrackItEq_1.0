@@ -81,10 +81,10 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <ListView
         android:id="@+id/lstGPSPoints"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/linearLayout2"
-        android:orientation="vertical"></LinearLayout>
+        android:layout_below="@+id/linearLayout2" />
+
 </RelativeLayout>

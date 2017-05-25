@@ -135,20 +135,37 @@ public class TrackItEqGPSActivity  extends AppCompatActivity {
                     lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 
-                            TextView txtplan = (TextView) v.findViewById(R.id.txtPlanName);
+                            TextView txtplan = (TextView) v.findViewById(R.id.txtSName);
                             String planName = txtplan.getText().toString();
+                            TextView txtDate = (TextView) v.findViewById(R.id.txtSDate);
+                            String runDate = txtplan.getText().toString();
 
-                            List<eqSessions_dt> myPlan = eqDB.getCurrentPlan(planName);
+                            List<eqGPSPositions_dt> myRun = eqDB.getGPSData(planName,runDate);
 
                             clearGrid();
-//
-//                            for (eqSessions_dt row : myPlan) {
-//
-//                                buildDisplayLine(false, row.get_gait(),Integer.toString(row.get_time()));
-//                            }
-//
-//
-//                            ((BaseAdapter)(adapter)).notifyDataSetChanged();
+                            List<Map<String,Object>> showRun = new ArrayList<Map<String, Object>>();
+
+                            for (eqGPSPositions_dt row : myRun) {
+                                Map<String, Object> dataMap = new HashMap<>();
+                                dataMap.put("gpsLat",row.get_lat());
+                                dataMap.put("gpsLon",row.get_lon());
+                                dataMap.put("gpsAvgSpeed",row.getAvgSpeed());
+                                dataMap.put("gpsCurrSpeed",row.getGpsSpeed());
+                                dataMap.put("gpsBearing",row.getBearing());
+                                showRun.add((dataMap));
+                            }
+
+                            ListView lstGPSPoints = (ListView) parent.findViewById(R.id.lstGPSPoints);
+
+                            try {
+                                SimpleAdapter adapter = new SimpleAdapter(context, showRun, R.layout.gps_detail,
+                                        new String[] { "gpsLat", "gpsLon","gpsAvgSpeed","gpsCurrSpeed","gpsBearing" },
+                                        new int[] { R.id.txtLat, R.id.txtLon, R.id.txtavgSpeed,R.id.txtGPSSpeed,R.id.txtBearing });
+                                lstGPSPoints.setAdapter(adapter);
+                                ((BaseAdapter)(adapter)).notifyDataSetChanged();
+                            } catch (Exception e) {
+                                Log.i(eTAG, e.getMessage());
+                            }
 
                             dialog.dismiss();
 
