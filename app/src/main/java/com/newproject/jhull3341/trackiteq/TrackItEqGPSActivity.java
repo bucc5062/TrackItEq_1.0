@@ -38,6 +38,7 @@ public class TrackItEqGPSActivity  extends AppCompatActivity {
     private String dbPath = "";
     private String appPath = "";
     private static final String DATABASE_NAME = "EqConditioning.db";
+    private ListView lstGPSPoints;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,6 +46,7 @@ public class TrackItEqGPSActivity  extends AppCompatActivity {
 
         setTitle(R.string.activityGPSActions);
         setContentView(R.layout.activity_gps_actions);
+        lstGPSPoints = (ListView) findViewById(R.id.lstGPSPoints);
 
         Toolbar mySecondaryToolbar = (Toolbar) findViewById(R.id.my_gpstoolbar);
         setSupportActionBar(mySecondaryToolbar);
@@ -65,7 +67,7 @@ public class TrackItEqGPSActivity  extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
-            case R.id.action_back2:
+            case R.id.action_gps_exit:
                 // this send the app over to the plan management tool activity
                 Intent buildIntent = new Intent(context, TrackItEqDisplayActivity.class);
                 startActivity(buildIntent);
@@ -155,14 +157,16 @@ public class TrackItEqGPSActivity  extends AppCompatActivity {
                                 showRun.add((dataMap));
                             }
 
-                            ListView lstGPSPoints = (ListView) parent.findViewById(R.id.lstGPSPoints);
+                            //ListView lstGPSPoints = (ListView) parent.findViewById(R.id.lstGPSPoints);
 
                             try {
                                 SimpleAdapter adapter = new SimpleAdapter(context, showRun, R.layout.gps_detail,
                                         new String[] { "gpsLat", "gpsLon","gpsAvgSpeed","gpsCurrSpeed","gpsBearing" },
                                         new int[] { R.id.txtLat, R.id.txtLon, R.id.txtavgSpeed,R.id.txtGPSSpeed,R.id.txtBearing });
+
                                 lstGPSPoints.setAdapter(adapter);
-                                ((BaseAdapter)(adapter)).notifyDataSetChanged();
+                                //((BaseAdapter)(adapter)).notifyDataSetChanged();
+
                             } catch (Exception e) {
                                 Log.i(eTAG, e.getMessage());
                             }

@@ -360,7 +360,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
                 aline.set_gps_session_id(cursor.getInt(GPS_MASTER_COLUMNS.gps_session_id.ordinal()));
                 aline.set_gps_session_name(cursor.getString(GPS_MASTER_COLUMNS.gps_session_name.ordinal()));
-                aline.set_gps_session_date(DateLongToText(cursor.getLong(GPS_MASTER_COLUMNS.gps_session_date.ordinal())));
+                aline.set_gps_session_date(DateLongToText(cursor.getLong(GPS_MASTER_COLUMNS.gps_session_date.ordinal()),true));
 
                 allRuns.add(aline);                                   // add the row to the list
 
@@ -438,6 +438,13 @@ public class eqDatabaseService extends SQLiteOpenHelper {
     private String DateLongToText(long inVal) {
 
         String dateString = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date(inVal));
+
+        return dateString;
+
+    }
+    private String DateLongToText(long inVal,boolean asShort) {
+
+        String dateString = new SimpleDateFormat("yyyy-MM-dd").format(new Date(inVal));
 
         return dateString;
 

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_gps_exit"
-        android:icon="@drawable/ic_cancel_24dp"
+        android:icon="@mipmap/ic_back_arrow"
         android:title="@string/activityMainTitle"
         app:showAsAction="ifRoom"/>
     <item android:id="@+id/gps_action_settings"

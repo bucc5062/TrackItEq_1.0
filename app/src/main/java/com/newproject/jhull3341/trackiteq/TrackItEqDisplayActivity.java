@@ -87,7 +87,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private long totalSpeed = 0;
     private long spdCount = 1;
     private int sayItCount = 0;
-    private boolean sayItVolume = true;
+    private boolean sayItVolume = false;
 
     private gpsLocator mygps;
 
@@ -122,6 +122,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private final static String SAVE_NEXT_GAIT = "nextGait";
     private final static String SAVE_TOTAL_SPEED = "totalSpeed";
     private final static String SAVE_AVG_SPEED = "avgSpeed";
+    private final static String SAVE_GPS_SPEED = "gpsSpeed";
     private final static String SAVE_SPD_COUNT = "spdCount";
 
 // this is a change
@@ -308,6 +309,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         outState.putLong(SAVE_PRE_TIME, preTime);
         outState.putLong(SAVE_TOTAL_SPEED,totalSpeed);
         outState.putLong(SAVE_AVG_SPEED,avgSpeed);
+        outState.putLong(SAVE_GPS_SPEED,gpsSpeed);
         outState.putLong(SAVE_SPD_COUNT,spdCount);
 
     }
@@ -320,6 +322,8 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         legGait = savedInstanceState.getString(SAVE_LEG_GAIT);
         legNumber = savedInstanceState.getInt(SAVE_LEG_NUMBER);
         legTime = savedInstanceState.getLong(SAVE_LEG_TIME);
+        gpsSpeed = savedInstanceState.getLong(SAVE_GPS_SPEED);
+
         openSession = savedInstanceState.getBoolean(SAVE_OPEN_SESSION);
         currentPlan = savedInstanceState.getStringArrayList(SAVE_CURRENT_PLAN);
         currentPlan1 = savedInstanceState.getParcelableArrayList(SAVE_CURRENT_PLAN1);
@@ -719,9 +723,11 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
         TextView legText = (TextView) findViewById(R.id.txtLegTime);
         TextView totText = (TextView) findViewById(R.id.txtTotalTime);
+        TextView gpsText = (TextView) findViewById(R.id.txtAvgPace);
+
         totText.setText(displayTime(planTime));
         legText.setText(String.format("%1s %2s > %3s", gaitLetter(legGait), displayTime(legTime),gaitLetter(nextGait)));
-
+        gpsText.setText(String.format("%1$04d",avgSpeed));
     }
 
     private void setLegColor() {
@@ -777,6 +783,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         ImageButton btnStartPlan = (ImageButton) findViewById(R.id.btnStartPlan);
         ImageButton btnPausePlan = (ImageButton) findViewById(R.id.btnPausePlan);
         ImageButton btnStopPlan = (ImageButton) findViewById(R.id.btnStopPlan);
+        ImageButton btnPlayPace = (ImageButton) findViewById(R.id.btnPaceVolume);
 
         if (whatPushed.equals(getString(R.string.startButtonPushed))) {
             btnStartPlan.setVisibility((View.INVISIBLE));
@@ -786,6 +793,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             btnPausePlan.setVisibility((View.INVISIBLE));
             btnStopPlan.setVisibility((View.INVISIBLE));
             btnStartPlan.setVisibility((View.VISIBLE));
+            btnPlayPace.setVisibility((View.INVISIBLE));
         } else if (whatPushed.equals(getString(R.string.pauseButtonPushed))) {
             btnStartPlan.setVisibility((View.VISIBLE));
         } else if (whatPushed.equals(getString(R.string.noStopButtonPushed))) {
@@ -796,6 +804,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
             btnPausePlan.setVisibility((View.INVISIBLE));
             btnStopPlan.setVisibility((View.INVISIBLE));
             btnStartPlan.setVisibility((View.INVISIBLE));
+            btnPlayPace.setVisibility((View.INVISIBLE));
         }
     }
 
@@ -1023,7 +1032,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     private void sayOverUnderPace() {
 
         long reqPace = gaitPace.get(gaitLetter(legGait));
-        if (gpsSpeed >= (reqPace-5) && gpsSpeed <= (reqPace +10)) {
+        if (gpsSpeed >= (reqPace-5) && gpsSpeed <= (reqPace +20)) {
             // we are in the zone, say it three times.
             if (sayItCount <=3){
                 sayTime.speak("On Pace", TextToSpeech.QUEUE_FLUSH, null);
