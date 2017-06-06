@@ -36,48 +36,35 @@
 
         <LinearLayout
             android:id="@+id/lyActionButtons"
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1.09"
             android:gravity="fill_horizontal|center_horizontal"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:weightSum="1">
 
             <ImageButton
-                android:id="@+id/btnStartPlan1"
+                android:id="@+id/btnLineGraph"
                 android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="3dp"
-                android:src="@mipmap/ic_runplan" />
+                android:src="@mipmap/ic_runplan"
+                android:layout_weight="0.32" />
 
             <ImageButton
-                android:id="@+id/btnPausePlan1"
+                android:id="@+id/btnPieChart"
                 android:layout_width="60dp"
                 android:layout_height="match_parent"
+                android:layout_weight="0.29"
                 android:src="@mipmap/ic_pauseplan" />
 
             <ImageButton
-                android:id="@+id/btnStopPlan1"
+                android:id="@+id/btnBarGrpah"
                 android:layout_width="60dp"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="0dp"
                 android:src="@mipmap/ic_stopplan" />
 
-            <ImageButton
-                android:id="@+id/btnPaceVolume1"
-                android:layout_width="60dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="0dp"
-                android:src="@mipmap/ic_vol_on" />
-
         </LinearLayout>
-
-        <ImageButton
-            android:id="@+id/btnManagePlans1"
-            android:layout_width="60dp"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="5dp"
-            android:contentDescription="@string/set_volume"
-            android:src="@mipmap/ic_createplan" />
 
     </LinearLayout>
 

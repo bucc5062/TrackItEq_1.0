@@ -22,6 +22,7 @@
     <string name="activityManagePlans">Manage Plans</string>
     <string name="activityManageGaits">Manage Gaits</string>
     <string name="activityGPSActions">GPS Actions</string>
+    <string name="activityGPSGraph">GPS Graphing</string>
 
     <string name="btnDelTitle">Del</string>
     <string name="dlgSaveTitle">Save Exercise Plan...</string>
