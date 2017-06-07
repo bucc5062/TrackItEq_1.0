@@ -5,18 +5,18 @@
 
     <TextView
         android:id="@+id/txtPlanName"
-        android:layout_width="275dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="5dp"
         android:layout_marginTop="5dp"
-        android:layout_weight="1"
+        android:layout_weight=".7"
         android:text="TextView"
         android:textSize="24sp" />
 
     <TextView
         android:id="@+id/txtNumElements"
-        android:layout_width="30dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
         android:layout_marginRight="5dp"

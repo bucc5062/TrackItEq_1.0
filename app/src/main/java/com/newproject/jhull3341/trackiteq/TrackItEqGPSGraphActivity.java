@@ -2,6 +2,7 @@ package com.newproject.jhull3341.trackiteq;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -64,7 +66,18 @@ public class TrackItEqGPSGraphActivity extends AppCompatActivity {
             c++;
         }
         series = new LineGraphSeries<DataPoint>(values);
+        series.setColor(Color.parseColor("#4fc9dd"));
+        series.setThickness(10);
         series1 = new LineGraphSeries<DataPoint>(values1);
+        series1.setColor(Color.parseColor("#FFA80707"));
+        series1.setThickness(10);
+
+// legend
+        series.setTitle("Raw Speed");
+        series1.setTitle("Avg Speed");
+        graph.getLegendRenderer().setVisible(true);
+        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+
         graph.addSeries(series);
         graph.addSeries(series1);
 

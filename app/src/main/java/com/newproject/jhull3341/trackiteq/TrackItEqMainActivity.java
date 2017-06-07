@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static android.view.View.*;
 
@@ -238,7 +239,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
                     final Dialog dialog = new Dialog(context);
                     dialog.setContentView(R.layout.activity_track_it_eq_open_plan);
-                    dialog.setTitle("Open Exercise Plan...");
+                    dialog.setTitle(R.string.OpenExercisePlan);
 
                     Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancelOpen);
                     diaCancelButton.setOnClickListener(new OnClickListener() {
@@ -248,11 +249,21 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                         }
                     });
 
-
                     // get a list of files from the local app plans
                     final eqDatabaseService eqDB = new eqDatabaseService(context, 2);
 
+                    ListView lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
+                    ListView lvHeader = (ListView) dialog.findViewById(R.id.lvpHeader);
+
                     ArrayList<HashMap<String,String>> allPlans = eqDB.getPlanList();
+                    ArrayList<HashMap<String,String>> list_title = new ArrayList<>();
+
+                    // set up the header
+
+                    HashMap<String, String> HdrMap = new HashMap<>();
+                    HdrMap.put("keyName", "Plan");
+                    HdrMap.put("keyENum", "Num Legs");
+                    list_title.add(HdrMap);
 
                     if (allPlans.isEmpty()) {
                         Toast toast = new Toast(context);
@@ -260,11 +271,16 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                         Toast.makeText(context, "No Files to open, Please create one!", Toast.LENGTH_LONG).show();
                         return;
                     }
-
-                    ListView lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
-
                     try {
+                        SimpleAdapter adapter_title1 = new SimpleAdapter(context, list_title, R.layout.plans_columns,
+                                new String[] { "keyName", "keyENum" }, new int[] {
+                                R.id.txtPlanName, R.id.txtNumElements  });
 
+                        lvHeader.setAdapter(adapter_title1);
+                    } catch (Exception e) {
+                        Log.i(eTAG, e.getStackTrace().toString());
+                    }
+                    try {
                         SimpleAdapter PlansAdapter = new SimpleAdapter(context, allPlans, R.layout.plans_columns,
                                 new String[] { "keyName", "keyENum" }, new int[] {
                                 R.id.txtPlanName, R.id.txtNumElements  });

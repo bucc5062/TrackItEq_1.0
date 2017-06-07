@@ -6,26 +6,28 @@
 
     <TextView
         android:id="@+id/txtdisplayGait"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="44dp"
-        android:layout_weight="1"
+        android:layout_weight=".6"
         android:gravity="center_vertical"
         android:text="TextView"
-        android:textSize="18sp" />
+        android:textSize="24sp" />
 
     <TextView
         android:id="@+id/txtdisplayTime"
-        android:layout_width="80dp"
+        android:layout_width="0dp"
         android:layout_height="44dp"
+        android:layout_weight=".2"
         android:gravity="center_vertical"
         android:text="TextView"
-        android:textSize="18sp" />
+        android:textSize="24sp" />
 
     <ImageButton
         android:id="@+id/btnRemoveLine"
-        android:layout_width="25dp"
+        android:layout_width="0dp"
         android:layout_height="44dp"
-        android:layout_weight="0.39"
+        android:layout_gravity="right"
+        android:layout_weight="0.2"
         android:background="@color/wallet_bright_foreground_holo_dark"
         android:elevation="1dp"
         android:src="@android:drawable/btn_dialog" />

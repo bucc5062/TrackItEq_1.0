@@ -21,11 +21,19 @@
         android:layout_centerHorizontal="true" />
 
     <ListView
+        android:id="@+id/lvpHeader"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/btnCancelOpen"
+        android:layout_marginTop="24dp"
+        android:background="@color/linehot"
+        android:visibility="visible" />
+
+    <ListView
+        android:id="@+id/lvPlans"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/lvPlans"
-        android:layout_below="@+id/btnCancelOpen"
-        android:layout_marginTop="31dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_below="@+id/lvpHeader"
+        android:layout_alignParentStart="true"></ListView>
 </RelativeLayout>

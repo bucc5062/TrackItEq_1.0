@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
     <TextView
@@ -21,11 +22,20 @@
         android:layout_centerHorizontal="true" />
 
     <ListView
+        android:id="@+id/lvHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/btnCancelOpen"
+        android:layout_marginTop="31dp"
+        tools:background="@color/colorPrimaryDark" />
+
+    <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lvPlans"
-        android:layout_below="@+id/btnCancelOpen"
-        android:layout_marginTop="31dp"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lvHeader" />
 </RelativeLayout>

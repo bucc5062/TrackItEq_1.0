@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#697dff</color>
+    <color name="colorPrimaryDark">#3b55ff</color>
     <color name="colorAccent">#FF4081</color>
     <color name="colorWalk">#ccfdc8</color>
-    <color name="colorTrot">#ffeea2</color>
+    <color name="colorTrot">#fedb3c</color>
     <color name="colorCanter">#ff9e80</color>
     <color name="colorGallop">#ff8a90</color>
+    <color name="linehot">#a80707</color>
 
 </resources>

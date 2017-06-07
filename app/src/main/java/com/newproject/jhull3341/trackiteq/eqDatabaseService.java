@@ -306,9 +306,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         db.delete(TABLE_EQ_SESSIONS,"gps_session_id=?",new String[] {sessionID.toString()});
 
     }
-    public ArrayList<eqGPSPositions_dt> getGPSData(String planName, String createDate) {
-
-        Integer sessionID = getSessionID(planName,createDate);
+    public ArrayList<eqGPSPositions_dt> getGPSData(Integer sessionID) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 

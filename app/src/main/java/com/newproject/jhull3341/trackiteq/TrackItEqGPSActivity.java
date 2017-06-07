@@ -3,6 +3,8 @@ package com.newproject.jhull3341.trackiteq;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
@@ -17,6 +19,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -110,6 +113,8 @@ public class TrackItEqGPSActivity  extends AppCompatActivity {
                     dialog.setContentView(R.layout.activity_track_it_eq_open_gpsrun);
                     dialog.setTitle("Open GPS Run...");
 
+                    Integer WidthSize = dialog.getWindow().getDecorView().getWidth();   //get size of window
+
                     Button diaCancelButton = (Button) dialog.findViewById(R.id.btnCancelOpen);
                     diaCancelButton.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -132,10 +137,34 @@ public class TrackItEqGPSActivity  extends AppCompatActivity {
                     }
 
                     ListView lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
+                    ListView lvHeader = (ListView) dialog.findViewById(R.id.lvHeader);
 
                     List<Map<String, Object>> showRuns = new ArrayList<Map<String, Object>>();
+                    List<Map<String, Object>> mylist_title = new ArrayList<Map<String, Object>>();
+
+                    // set up the header
+                    ListAdapter adapter_title;
+                    Map<String, Object> HdrMap = new HashMap<>();
+
+                    HdrMap.put("sName", "Name");
+                    HdrMap.put("sDate", "Date Run");
+                    HdrMap.put("sID", "ID");
+
+                    mylist_title.add(HdrMap);
+                    try {
+                        SimpleAdapter adapter_title1 = new SimpleAdapter(context, mylist_title, R.layout.gps_mst_columns,
+                                new String[]{"sName", "sDate", "sID"},
+                                new int[]{R.id.txtSName, R.id.txtSDate, R.id.txtSid});
+                        lvHeader.setAdapter(adapter_title1);
+                    } catch (Exception e) {
+
+                    }
 
 
+
+                    // end setting up header
+
+                    //set up detail
                     for (eqGPSDataMaster row : allRuns) {
                         Map<String, Object> dataMap = new HashMap<>();
                         dataMap.put("sName", row.get_gps_session_name());
@@ -162,10 +191,12 @@ public class TrackItEqGPSActivity  extends AppCompatActivity {
                             TextView txtplan = (TextView) v.findViewById(R.id.txtSName);
                             String planName = txtplan.getText().toString();
                             TextView txtDate = (TextView) v.findViewById(R.id.txtSDate);
-                            String runDate = txtplan.getText().toString();
+                            String runDate = txtDate.getText().toString();
+                            TextView txtSiD = (TextView) v.findViewById(R.id.txtSid);
+                            String sID = txtSiD.getText().toString();
 
                             myRun = null;
-                            myRun = eqDB.getGPSData(planName, runDate);
+                            myRun = eqDB.getGPSData(Integer.parseInt(sID));
 
                             clearGrid();
                             List<Map<String, Object>> showRun = new ArrayList<Map<String, Object>>();

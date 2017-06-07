@@ -103,4 +103,5 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="set_volume">Set Volume</string>
+    <string name="OpenExercisePlan">Open Exercise Plan...</string>
 </resources>
