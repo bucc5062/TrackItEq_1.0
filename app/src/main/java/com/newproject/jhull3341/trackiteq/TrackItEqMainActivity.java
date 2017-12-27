@@ -56,20 +56,31 @@ import static android.view.View.*;
 
 public class TrackItEqMainActivity extends AppCompatActivity {
 
+    public class DetailLine {
+        public String Gait;
+        public String legTime;
+        public String totTime;
+    }
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+
     public int rowCount = 1;
+    public int TotalTime = 0;
+
     private static final String eTAG = "Exception";
     final Context context = this;
 
     // global variables needed for processing the add gaits display
     private ListView lstGaits;
     private ListAdapter adapter;
+    private ListAdapter adapter1;
 
     private ArrayList<HashMap<String, String>> mylist;
+    public List<Map<String, Object>> disData;
+    public Map<String, Object> dataMap;
 
     // *****
 
@@ -89,12 +100,30 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
         // set the objects needed to handle the dynamic gaits list
         ListView lstGaits = (ListView) findViewById(R.id.lstMyGaits);
+
         mylist = new ArrayList<HashMap<String, String>>();
+
+        disData = new ArrayList<Map<String,Object>>();
+        dataMap = new HashMap<String, Object>(3);
+
         try {
-            adapter = new SimpleAdapter(this, mylist, R.layout.gaits_detail,
-                    new String[] { "keyGait", "keyTime" }, new int[] {
-                    R.id.txtdisplayGait, R.id.txtdisplayTime  });
+            adapter = new SimpleAdapter(this,
+                    mylist,
+                    R.layout.gaits_detail,
+                    new String[] { "keyGait", "keyTime" },
+                    new int[] {R.id.txtdisplayGait, R.id.txtdisplayTime  });
+
+            adapter1 = new SimpleAdapter(this,
+                    disData,
+                    R.layout.gaits_detail1,
+                    new String[] {"keyGait", "keyTime", "keyTTime"} ,
+                    new int[] {R.id.txtdisplayGait, R.id.txtdisplayTime, R.id.txtdisplayTotalTime}){
+
+                //overload the getChildView or any other Override methods
+            };
+
             lstGaits.setAdapter(adapter);
+            //lstGaits.setAdapter(adapter1);
         } catch (Exception e) {
             Log.i(eTAG, e.getMessage());
         }
@@ -302,14 +331,17 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                             List<eqSessions_dt> myPlan = eqDB.getCurrentPlan(planName);
 
                             clearGrid();
+                            TotalTime = 0;
+                            disData = new ArrayList<Map<String,Object>>();
 
                             for (eqSessions_dt row : myPlan) {
-
-                                buildDisplayLine(false, row.get_gait(),Integer.toString(row.get_time()));
+                                TotalTime = TotalTime + row.get_time();
+                                buildDisplayLine(false, row.get_gait(),Integer.toString(row.get_time()),toTime(TotalTime));
                             }
 
 
                             ((BaseAdapter)(adapter)).notifyDataSetChanged();
+                            //((BaseAdapter)(adapter1)).notifyDataSetChanged();
 
                             dialog.dismiss();
 
@@ -461,7 +493,10 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             TextView txtTime = (TextView) findViewById(R.id.txtSelected);
             String tmeResult = txtTime.getText().toString();
 
-            buildDisplayLine(true,gtResult,tmeResult);
+            Integer.parseInt(tmeResult);
+            TotalTime = TotalTime + Integer.parseInt(tmeResult);;
+
+            buildDisplayLine(true,gtResult,tmeResult, toTime(TotalTime));
 
             txtTime.setText("");
             spinner.requestFocus();
@@ -484,17 +519,33 @@ public class TrackItEqMainActivity extends AppCompatActivity {
     /* ----------------------------------------------------------------------------- */
     //region PrivateFunctions
     @TargetApi(Build.VERSION_CODES.M)
-    private void buildDisplayLine(boolean isNew, String gait, String time) {
+    private void buildDisplayLine(boolean isNew, String gait, String time, String TotTime) {
 
         HashMap<String, String> map2 = new HashMap<String, String>();
+        dataMap = new HashMap<String, Object>(3);
+
+        dataMap.put("keyGait",gait);
+        dataMap.put("keyTime",time);
+        dataMap.put("keyTTime",TotTime);
+
+        disData.add(dataMap);
+
         map2.put("keyGait",gait);                  // put the col data in
         map2.put("keyTime", time);      // put the col data in
         mylist.add(map2);
 
         if (isNew) {
             ((BaseAdapter) (adapter)).notifyDataSetChanged();
+           // ((BaseAdapter) (adapter1)).notifyDataSetChanged();
         }
 
+    }
+    private String toTime(int passTime) {
+
+        int hours = passTime / 60;  //Everything is in minutes so 60 as in 60 minutes in and hour
+        int mins = passTime % 60;   //we do a modal on 60 because the result will be remaining secs
+
+        return String.format("%02d:%02d",hours,mins);
     }
     private int toPixels(int dp) {
 

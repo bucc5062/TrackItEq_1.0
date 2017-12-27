@@ -22,6 +22,15 @@
         android:text="TextView"
         android:textSize="22sp" />
 
+    <TextView
+        android:id="@+id/txtdisplayTotalTime"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight=".2"
+        android:gravity="center_vertical"
+        android:text="TextView"
+        android:textSize="22sp" />
+
     <ImageButton
         android:id="@+id/btnRemoveLine"
         android:layout_width="0dp"

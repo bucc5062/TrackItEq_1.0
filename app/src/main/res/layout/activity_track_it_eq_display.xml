@@ -111,11 +111,11 @@
                 android:text="Leg Pace (avg/curr)"
                 android:id="@+id/txtPaceTitle"
                 android:layout_gravity="center_horizontal"
-                android:background="#3f0d0d"
                 android:gravity="center"
                 android:inputType="none"
                 android:textColor="#e1e101"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:background="@drawable/rounded_corner" />
 
             <TextView
                 android:layout_width="288dp"
@@ -138,7 +138,7 @@
                 android:text="Leg Time"
                 android:id="@+id/txtViewGait"
                 android:layout_gravity="center_horizontal"
-                android:background="#3f0d0d"
+                android:background="@drawable/rounded_corner"
                 android:gravity="center"
                 android:inputType="none"
                 android:textColor="#e1e101"
@@ -167,7 +167,7 @@
                 android:text="Total Time"
                 android:id="@+id/textView4"
                 android:layout_gravity="center_horizontal"
-                android:background="#3f0d0d"
+                android:background="@drawable/rounded_corner"
                 android:gravity="center"
                 android:inputType="none"
                 android:textColor="#e1e101"
@@ -180,7 +180,7 @@
                 android:text="99:99"
                 android:id="@+id/txtTotalTime"
                 android:layout_gravity="center_horizontal"
-                android:background="#fcd9db"
+                android:background="#889eff"
                 android:gravity="center_vertical|right"
                 android:hint="Average leg pace"
                 android:inputType="none"

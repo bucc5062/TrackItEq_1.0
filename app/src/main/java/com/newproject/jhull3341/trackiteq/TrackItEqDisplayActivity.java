@@ -281,6 +281,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         super.onDestroy();
         try {
             timerHandler.removeCallbacks(timerRunnable);
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (LocationListener) context);
         } catch (Exception ex) {
             // do nothing it is all ready gone
         }
@@ -449,7 +450,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     @Override
     public void onStop() {
         super.onStop();
-
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (LocationListener) context);
         Action viewAction = Action.newAction(
                 Action.TYPE_VIEW, // TODO: choose an action type.
                 "TrackItEqDisplay Page", // TODO: Define a title for the content shown.
