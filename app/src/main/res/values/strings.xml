@@ -104,4 +104,10 @@
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="set_volume">Set Volume</string>
     <string name="OpenExercisePlan">Open Exercise Plan...</string>
+    <string name="remove_line">Remove Line</string>
+    <string name="SessionNew">New</string>
+    <string name="SessionOpen">Open</string>
+    <string name="SessionSave">Save</string>
+    <string name="SessionDelete">Delete</string>
+    <string name="LegSet">Set</string>
 </resources>

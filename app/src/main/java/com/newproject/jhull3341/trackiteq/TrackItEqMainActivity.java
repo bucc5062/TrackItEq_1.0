@@ -56,11 +56,6 @@ import static android.view.View.*;
 
 public class TrackItEqMainActivity extends AppCompatActivity {
 
-    public class DetailLine {
-        public String Gait;
-        public String legTime;
-        public String totTime;
-    }
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -68,19 +63,16 @@ public class TrackItEqMainActivity extends AppCompatActivity {
     private GoogleApiClient client;
 
     public int rowCount = 1;
-    public int TotalTime = 0;
 
     private static final String eTAG = "Exception";
     final Context context = this;
 
     // global variables needed for processing the add gaits display
-    private ListView lstGaits;
-    private ListAdapter adapter;
-    private ListAdapter adapter1;
 
-    private ArrayList<HashMap<String, String>> mylist;
+    public ListAdapter adapter1;
     public List<Map<String, Object>> disData;
     public Map<String, Object> dataMap;
+    public int TotalTime;
 
     // *****
 
@@ -101,29 +93,20 @@ public class TrackItEqMainActivity extends AppCompatActivity {
         // set the objects needed to handle the dynamic gaits list
         ListView lstGaits = (ListView) findViewById(R.id.lstMyGaits);
 
-        mylist = new ArrayList<HashMap<String, String>>();
-
         disData = new ArrayList<Map<String,Object>>();
         dataMap = new HashMap<String, Object>(3);
+        TotalTime = 0;
 
         try {
-            adapter = new SimpleAdapter(this,
-                    mylist,
-                    R.layout.gaits_detail,
-                    new String[] { "keyGait", "keyTime" },
-                    new int[] {R.id.txtdisplayGait, R.id.txtdisplayTime  });
-
             adapter1 = new SimpleAdapter(this,
                     disData,
                     R.layout.gaits_detail1,
                     new String[] {"keyGait", "keyTime", "keyTTime"} ,
                     new int[] {R.id.txtdisplayGait, R.id.txtdisplayTime, R.id.txtdisplayTotalTime}){
-
-                //overload the getChildView or any other Override methods
             };
 
-            lstGaits.setAdapter(adapter);
-            //lstGaits.setAdapter(adapter1);
+            lstGaits.setAdapter(adapter1);
+
         } catch (Exception e) {
             Log.i(eTAG, e.getMessage());
         }
@@ -255,7 +238,9 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             Log.i(eTAG, "onClick_btnNew");
             clearGrid();
             TextView txtTime = (TextView) findViewById(R.id.txtSelected);
+            TextView txtTotalTime = (TextView) findViewById(R.id.txtSelected);
             txtTime.setText("");
+            txtTotalTime.setText("");
 
         }
     };
@@ -332,19 +317,21 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
                             clearGrid();
                             TotalTime = 0;
-                            disData = new ArrayList<Map<String,Object>>();
+                            //disData = new ArrayList<Map<String,Object>>();
 
                             for (eqSessions_dt row : myPlan) {
                                 TotalTime = TotalTime + row.get_time();
                                 buildDisplayLine(false, row.get_gait(),Integer.toString(row.get_time()),toTime(TotalTime));
                             }
 
+                            ((BaseAdapter)(adapter1)).notifyDataSetChanged();
 
-                            ((BaseAdapter)(adapter)).notifyDataSetChanged();
-                            //((BaseAdapter)(adapter1)).notifyDataSetChanged();
+                            GridLayout grdEntry = (GridLayout) findViewById(R.id.grdEntry);
+                            grdEntry.setVisibility(VISIBLE);
 
+                            TextView txtTotalTime = (TextView) findViewById(R.id.txtTotalTime);
+                            txtTotalTime.setText(toTime(TotalTime));
                             dialog.dismiss();
-
 
                         }
                     });
@@ -388,9 +375,11 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                         String dbname = context.getDatabasePath("EqConditioning_db").getAbsolutePath();
                         Log.i(eTAG,"dbPath=" + dbname);
 
-                        for (HashMap<String, String> aRow : mylist) {
-                            String gait = aRow.get("keyGait");
-                            String time = aRow.get("keyTime");
+                        for (Map<String, Object> aRow : disData) {
+                            dataMap = aRow;
+                            String gait = dataMap.get("keyGait").toString();
+                            String time = dataMap.get("keyTime").toString();
+
                             eqSessions_dt sessionRow = new eqSessions_dt();
 
                             sessionRow.set_planName(planName);
@@ -492,13 +481,16 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
             TextView txtTime = (TextView) findViewById(R.id.txtSelected);
             String tmeResult = txtTime.getText().toString();
+            TextView txtTotTime = (TextView) findViewById(R.id.txtTotalTime);
 
             Integer.parseInt(tmeResult);
-            TotalTime = TotalTime + Integer.parseInt(tmeResult);;
+            TotalTime = TotalTime + Integer.parseInt(tmeResult);
 
             buildDisplayLine(true,gtResult,tmeResult, toTime(TotalTime));
 
+            txtTotTime.setText(toTime(TotalTime));
             txtTime.setText("");
+
             spinner.requestFocus();
 
         }
@@ -521,7 +513,6 @@ public class TrackItEqMainActivity extends AppCompatActivity {
     @TargetApi(Build.VERSION_CODES.M)
     private void buildDisplayLine(boolean isNew, String gait, String time, String TotTime) {
 
-        HashMap<String, String> map2 = new HashMap<String, String>();
         dataMap = new HashMap<String, Object>(3);
 
         dataMap.put("keyGait",gait);
@@ -530,13 +521,8 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
         disData.add(dataMap);
 
-        map2.put("keyGait",gait);                  // put the col data in
-        map2.put("keyTime", time);      // put the col data in
-        mylist.add(map2);
-
         if (isNew) {
-            ((BaseAdapter) (adapter)).notifyDataSetChanged();
-           // ((BaseAdapter) (adapter1)).notifyDataSetChanged();
+            ((BaseAdapter) (adapter1)).notifyDataSetChanged();
         }
 
     }
@@ -650,8 +636,9 @@ public class TrackItEqMainActivity extends AppCompatActivity {
 
         // clean up the grid any time we start to work with a plan, new or opened.
 
-        mylist.clear();
-        ((BaseAdapter)(adapter)).notifyDataSetChanged();
+        disData.clear();
+        TotalTime = 0;
+        ((BaseAdapter)(adapter1)).notifyDataSetChanged();
 
     }
     //endregion

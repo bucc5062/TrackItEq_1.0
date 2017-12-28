@@ -42,16 +42,16 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         gps_gpsSpeed,
         gps_spdCount,
         gps_positionDate,
-        gps_bearing;
+        gps_bearing
     }
     private enum GAITS_COLUMNS {
         Name,
         Category,
         Gait,
         Uom,
-        Pace;
+        Pace
     }
-    public eqDatabaseService(Context context, int version) {
+    eqDatabaseService(Context context, int version) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -138,7 +138,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 + "gps_bearing" + " INTEGER" + ")";
 
         db.execSQL(CREATE_TABLE_EQ_GPSPOSITIONS);
-        ;
+
     }
     private void createEQSettingsTable(SQLiteDatabase db) {
         Log.i(eTAG, "createEQSettingsTable start");
@@ -258,7 +258,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
     // region public functions GPS
 
-    public void insertCurrentGPSData(String planName,ArrayList<eqGPSPositions_dt> allPoints) {
+    void insertCurrentGPSData(String planName, ArrayList<eqGPSPositions_dt> allPoints) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -306,7 +306,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         db.delete(TABLE_EQ_SESSIONS,"gps_session_id=?",new String[] {sessionID.toString()});
 
     }
-    public ArrayList<eqGPSPositions_dt> getGPSData(Integer sessionID) {
+    ArrayList<eqGPSPositions_dt> getGPSData(Integer sessionID) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -332,10 +332,11 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
             } while (cursor.moveToNext());
         }
+        cursor.close();
 
         return allPoints;
     }
-    public ArrayList<eqGPSDataMaster> getGPSList() {
+    ArrayList<eqGPSDataMaster> getGPSList() {
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -364,6 +365,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
             } while (cursor.moveToNext());
         }
+        cursor.close();
         return allRuns;
     }
 
@@ -402,6 +404,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 cursor.moveToFirst();
                 sessionID = cursor.getInt(0);
             }
+            cursor.close();
         } catch (Exception ex) {
             sessionID = 1;
         }
@@ -426,6 +429,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
                 nextID = cursor.getInt(0);
                 nextID += 1;
             }
+            cursor.close();
         } catch (Exception ex) {
             nextID = 1;
         }
@@ -464,7 +468,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
     //endregion
     //region public functions Plans
 
-    public void insertCurrentPlanElement(eqSessions_dt plan) {
+    void insertCurrentPlanElement(eqSessions_dt plan) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -477,13 +481,13 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         db.insert(TABLE_EQ_SESSIONS, null, values);
 
     }
-    public void deleteCurrentPlan(String planName) {
+    void deleteCurrentPlan(String planName) {
 
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_EQ_SESSIONS,"session_name=?",new String[] {planName});
 
     }
-    public ArrayList<eqSessions_dt> getCurrentPlan(String planName) {
+    ArrayList<eqSessions_dt> getCurrentPlan(String planName) {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -504,13 +508,14 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
             } while (cursor.moveToNext());
         }
+        cursor.close();
         return allElements;
     }
-    public ArrayList<HashMap<String, String>> getPlanList() {
+    ArrayList<HashMap<String, String>> getPlanList() {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String selectQuery = "SELECT session_name, count(session_name) as numElements FROM " + TABLE_EQ_SESSIONS + " GROUP BY session_name";
+        String selectQuery = "SELECT session_name, count(session_name), sum(session_time) as numElements FROM " + TABLE_EQ_SESSIONS + " GROUP BY session_name";
 
         Cursor cursor = db.rawQuery(selectQuery,null);
 
@@ -529,7 +534,8 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
             } while (cursor.moveToNext());
         }
-            return allPlans;
+        cursor.close();
+        return allPlans;
     }
 
     //endregion
@@ -588,7 +594,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
             } while (cursor.moveToNext());
         }
-
+        cursor.close();
         return allGaits;
 
     }

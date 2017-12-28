@@ -34,7 +34,7 @@
             android:layout_column="0"
             android:layout_gravity="center_horizontal"
             android:layout_row="0"
-            android:text="New" />
+            android:text="@string/SessionNew" />
 
         <Button
             android:id="@+id/btnOpen"
@@ -44,7 +44,7 @@
             android:layout_column="1"
             android:layout_gravity="center_horizontal"
             android:layout_row="0"
-            android:text="Open" />
+            android:text="@string/SessionOpen" />
 
         <Button
             android:id="@+id/btnSave"
@@ -54,7 +54,7 @@
             android:layout_column="2"
             android:layout_gravity="center_horizontal"
             android:layout_row="0"
-            android:text="Save" />
+            android:text="@string/SessionSave" />
 
         <Button
             android:id="@+id/btnDelete"
@@ -64,7 +64,7 @@
             android:layout_column="3"
             android:layout_gravity="center_horizontal"
             android:layout_row="0"
-            android:text="Delete" />
+            android:text="@string/SessionDelete" />
     </GridLayout>
 
     <GridLayout
@@ -92,7 +92,7 @@
 
         <TextView
             android:id="@+id/lblGait"
-            android:layout_width="wrap_content"
+            android:layout_width="98dp"
             android:layout_height="wrap_content"
             android:layout_column="0"
             android:layout_marginBottom="5dp"
@@ -119,7 +119,7 @@
             android:layout_gravity="center_vertical"
             android:layout_row="1"
             android:clickable="true"
-            android:text="Set" />
+            android:text="@string/LegSet" android:focusable="true" />
 
         <TextView
             android:id="@+id/txtTotalTime"
@@ -127,7 +127,6 @@
             android:layout_height="wrap_content"
             android:layout_column="2"
             android:layout_row="0"
-            android:text="XX:XX"
             android:textAlignment="center"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             tools:textColor="@color/colorPrimaryDark" />
