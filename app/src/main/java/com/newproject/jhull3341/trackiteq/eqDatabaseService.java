@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jhull3341 on 3/31/2016.
@@ -51,6 +52,9 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         Uom,
         Pace
     }
+    private List<Map<String, Object>> PlansData;
+    private Map<String, Object> Plan;
+
     eqDatabaseService(Context context, int version) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -437,6 +441,14 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         return nextID;
 
     }
+    private String toTime(int passTime) {
+
+        int hours = passTime / 60;  //Everything is in minutes so 60 as in 60 minutes in and hour
+        int mins = passTime % 60;   //we do a modal on 60 because the result will be remaining secs
+
+        return String.format("%02d:%02d",hours,mins);
+    }
+
     private String DateLongToText(long inVal) {
 
         String dateString = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date(inVal));
@@ -511,7 +523,7 @@ public class eqDatabaseService extends SQLiteOpenHelper {
         cursor.close();
         return allElements;
     }
-    ArrayList<HashMap<String, String>> getPlanList() {
+    List<Map<String,Object>> getPlanList() {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -519,23 +531,24 @@ public class eqDatabaseService extends SQLiteOpenHelper {
 
         Cursor cursor = db.rawQuery(selectQuery,null);
 
-        ArrayList<HashMap<String, String>> allPlans = new ArrayList<>();   // create a holder for all the plans
+       // process through the retrieved grouped data and prepare a list
 
-        // process through the retrieved grouped data and prepare a list
-        HashMap<String, String> planLine;
+        PlansData = new ArrayList<Map<String,Object>>();
+
         if (cursor.moveToFirst()) {
             do {
 
-                planLine = new HashMap<String, String>();               // create a holder for a row
-                planLine.put("keyName",cursor.getString(0));                  // put the col data in
-                planLine.put("keyENum", Integer.toString(cursor.getInt(1)));      // put the col data in
+                Plan = new HashMap<String, Object>(3);      // create a holder for a row
 
-                allPlans.add(planLine);                                   // add the row to the list
+                Plan.put("keyName",cursor.getString(0));                  // put the col data in
+                Plan.put("keyENum",Integer.toString(cursor.getInt(1)));      // put the col data in
+                Plan.put("keyTTime",((cursor.getInt(2))));
+                PlansData.add(Plan);                                   // add the row to the list
 
             } while (cursor.moveToNext());
         }
         cursor.close();
-        return allPlans;
+        return PlansData;
     }
 
     //endregion

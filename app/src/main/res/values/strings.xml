@@ -110,4 +110,6 @@
     <string name="SessionSave">Save</string>
     <string name="SessionDelete">Delete</string>
     <string name="LegSet">Set</string>
+    <string name="xx_xx">XX:XX</string>
+    <string name="OpenCancel">Cancel</string>
 </resources>

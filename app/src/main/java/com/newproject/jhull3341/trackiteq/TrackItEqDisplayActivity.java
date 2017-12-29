@@ -487,7 +487,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         // get a list of files from the local app plans
         final eqDatabaseService eqDB = new eqDatabaseService(context, 2);
 
-        ArrayList<HashMap<String,String>> allPlans = eqDB.getPlanList();
+        List<Map<String,Object>> allPlans = eqDB.getPlanList();
 
         if (allPlans.isEmpty()) {
             Toast toast = new Toast(context);

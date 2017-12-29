@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.provider.MediaStore;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -269,15 +270,16 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                     ListView lvPlan = (ListView) dialog.findViewById(R.id.lvPlans);
                     ListView lvHeader = (ListView) dialog.findViewById(R.id.lvpHeader);
 
-                    ArrayList<HashMap<String,String>> allPlans = eqDB.getPlanList();
-                    ArrayList<HashMap<String,String>> list_title = new ArrayList<>();
+                    List<Map<String,Object>> allPlans = eqDB.getPlanList();
 
                     // set up the header
 
-                    HashMap<String, String> HdrMap = new HashMap<>();
-                    HdrMap.put("keyName", "Plan");
-                    HdrMap.put("keyENum", "Num Legs");
-                    list_title.add(HdrMap);
+                    ArrayList<Map<String,Object>> TitleData = new ArrayList<Map<String,Object>>();
+                    HashMap<String, Object> HeaderMap = new HashMap<String, Object>(3);
+                    HeaderMap.put("keyName", "Plan");
+                    HeaderMap.put("keyENum", "Num Legs");
+                    HeaderMap.put("keyTTime", "Tot Time");
+                    TitleData.add(HeaderMap);
 
                     if (allPlans.isEmpty()) {
                         Toast toast = new Toast(context);
@@ -285,19 +287,26 @@ public class TrackItEqMainActivity extends AppCompatActivity {
                         Toast.makeText(context, "No Files to open, Please create one!", Toast.LENGTH_LONG).show();
                         return;
                     }
+                    // Set up the Header titles for the view
+
                     try {
-                        SimpleAdapter adapter_title1 = new SimpleAdapter(context, list_title, R.layout.plans_columns,
-                                new String[] { "keyName", "keyENum" }, new int[] {
-                                R.id.txtPlanName, R.id.txtNumElements  });
+                        SimpleAdapter adapter_title1 = new SimpleAdapter(context,
+                                TitleData,
+                                R.layout.plans_columnsplain,
+                                new String[] { "keyName", "keyENum", "keyTTime" },
+                                new int[] { R.id.txtPlanName, R.id.txtNumElements });
 
                         lvHeader.setAdapter(adapter_title1);
                     } catch (Exception e) {
                         Log.i(eTAG, e.getStackTrace().toString());
                     }
+                    // now set up the details
                     try {
-                        SimpleAdapter PlansAdapter = new SimpleAdapter(context, allPlans, R.layout.plans_columns,
-                                new String[] { "keyName", "keyENum" }, new int[] {
-                                R.id.txtPlanName, R.id.txtNumElements  });
+                        SimpleAdapter PlansAdapter = new SimpleAdapter(context,
+                                allPlans,
+                                R.layout.plans_columns,
+                                new String[] { "keyName", "keyENum", "keyTTime" },
+                                new int[] { R.id.txtPlanName, R.id.txtNumElements, R.id.txtTotalPlanTime  });
 
                         lvPlan.setAdapter(PlansAdapter);
                     } catch (Exception e) {
@@ -432,7 +441,7 @@ public class TrackItEqMainActivity extends AppCompatActivity {
             // get a list of files from the local app plans
             final eqDatabaseService eqDB = new eqDatabaseService(context, 2);
 
-            ArrayList<HashMap<String,String>> allPlans = eqDB.getPlanList();
+            List<Map<String,Object>> allPlans = eqDB.getPlanList();
 
             if (allPlans.isEmpty()) {
                 Toast toast = new Toast(context);
