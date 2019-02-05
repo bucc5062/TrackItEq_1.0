@@ -10,11 +10,11 @@
     <TextView
         android:id="@+id/txtPlanName"
         android:layout_width="204dp"
-        android:layout_height="20sp"
+        android:layout_height="30sp"
         android:layout_marginStart="5dp"
         android:layout_marginTop="8dp"
         android:gravity="start"
-        android:textSize="18sp"
+        android:textSize="24sp"
         app:layout_constraintEnd_toStartOf="@+id/txtNumElements"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -22,22 +22,22 @@
     <TextView
         android:id="@+id/txtNumElements"
         android:layout_width="51dp"
-        android:layout_height="20sp"
-        android:layout_marginEnd="8dp"
+        android:layout_height="30sp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:gravity="start"
-        android:textSize="18sp"
+        android:textSize="24sp"
         app:layout_constraintEnd_toStartOf="@+id/txtTotalPlanTime"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/txtTotalPlanTime"
         android:layout_width="77dp"
-        android:layout_height="20sp"
-        android:layout_marginEnd="8dp"
+        android:layout_height="30sp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:gravity="end"
-        android:textSize="18sp"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 </android.support.constraint.ConstraintLayout>

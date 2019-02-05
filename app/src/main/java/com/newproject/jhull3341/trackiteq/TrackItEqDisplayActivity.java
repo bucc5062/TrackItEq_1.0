@@ -1,5 +1,6 @@
 package com.newproject.jhull3341.trackiteq;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Dialog;
 import android.content.Context;
@@ -12,6 +13,7 @@ import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -251,6 +253,19 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        // If the screen is off then the device has been locked
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        boolean isScreenOn = powerManager.isScreenOn();
+        Log.i(eTAG, "onPause: " + isScreenOn);
+        if (!isScreenOn) {
+           // timerHandler.postDelayed(timerRunnable, 0);
+           // timerRunning = true;
+           // Log.i(eTAG, "Keep Running in standby");
+        }
+    }
+    @Override
     public void onConnected(Bundle bundle) {
       //  LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         ImageView gpsNotify =  (ImageView) findViewById(R.id.imgGPSNotify);
@@ -265,7 +280,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.i(eTAG,"onLocationChanged provider: " + location.getProvider() + " ");
+        //Log.i(eTAG,"onLocationChanged provider: " + location.getProvider() + " ");
         LocationChanged(convertSpeed(location, "mpm"));
         saveCurrentLocation(location);
     }
@@ -511,6 +526,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         //********************************************************
 
         lvPlan.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @SuppressLint("MissingPermission")
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 
                 resetCurrentPlanValues();   // resets the interal and external time displays
@@ -632,7 +648,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         aGPSPoint.setBearing(bearing);
 
         try {
-            Log.i(eTAG,"saveloc= " + eqGPSPositions_dt.beanToString(aGPSPoint));
+            //Log.i(eTAG,"saveloc= " + eqGPSPositions_dt.beanToString(aGPSPoint));
         } catch (Exception ex) {
             Log.i(eTAG,"ex: " + ex.getStackTrace().toString());
         }
@@ -956,7 +972,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
         if (legTime == 0) {
             processTimeZeroLegTime();
         } else {
-
+            Log.i(eTAG,"process time: " + legTime);
             long mod60 = legTime % 60;
             long mod30 = legTime % 30;
             long mod03 = legTime % 3;
@@ -1124,6 +1140,7 @@ public class TrackItEqDisplayActivity extends AppCompatActivity
 
     }
 
+    @SuppressLint("MissingPermission")
     protected void startLocationUpdates() {
         Log.i(eTAG, "startLocationUpdates");
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
